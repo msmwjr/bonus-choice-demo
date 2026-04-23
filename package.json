@@ -1,0 +1,11 @@
+{
+  "name": "bonus-choice-demo",
+  "version": "1.0.0",
+  "description": "2025年度绩效特别奖励选择演示系统",
+  "scripts": {
+    "start": "npx serve . -p $PORT --no-clipboard"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

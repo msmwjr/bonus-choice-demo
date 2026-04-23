@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>特别奖励管理后台</title>
+<style>
+:root{
+  --bg:#f3f4f6;--surface:#fff;--border:#e2e5ea;--border-lt:#edf0f4;--nav-bg:#1e2535;
+  --blue:#2563c7;--blue-lt:#eff4ff;--blue-mid:#4b80e0;
+  --text:#1a1d23;--text-2:#4a5263;--text-3:#8a93a6;
+  --green:#16875a;--green-lt:#edfaf4;--red:#c0392b;--red-lt:#fdf2f1;
+  --amber:#b45309;--amber-lt:#fffbeb;--gray-lt:#f3f4f6;
+  --r:8px;--r-sm:5px;--r-lg:12px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px;-webkit-font-smoothing:antialiased}
+body{font-family:'PingFang SC','Noto Sans SC','Microsoft YaHei',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit}
+a{text-decoration:none}
+
+/* nav */
+.nav{background:var(--nav-bg);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200}
+.nav-left{display:flex;align-items:center;gap:20px}
+.nav-title{color:#fff;font-size:.95rem;font-weight:700}
+.nav-sub{color:#6a7898;font-size:.78rem}
+.nav-link{color:#8a9ab8;font-size:.8rem;padding:4px 10px;border:1px solid #3a4255;border-radius:4px;transition:all .15s}
+.nav-link:hover{color:#fff;border-color:#5a6882}
+
+/* tabs */
+.page-tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:16px;background:var(--surface);border-radius:var(--r-lg) var(--r-lg) 0 0;overflow:hidden}
+.page-tab{padding:12px 22px;font-size:.85rem;font-weight:600;color:var(--text-3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;background:transparent;border-top:none;border-left:none;border-right:none}
+.page-tab:hover{color:var(--text-2)}
+.page-tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+
+/* main */
+.main{max-width:1440px;margin:0 auto;padding:20px 20px 60px}
+
+/* stat */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+@media(max-width:600px){.stat-grid{grid-template-columns:1fr}}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px 20px}
+.stat-label{font-size:.74rem;color:var(--text-3);margin-bottom:5px}
+.stat-value{font-size:2rem;font-weight:800;letter-spacing:-.025em}
+.stat-value.total{color:var(--text)}
+.stat-value.done{color:var(--green)}
+.stat-value.pending-v{color:var(--amber)}
+.stat-sub{font-size:.72rem;color:var(--text-3);margin-top:4px}
+.stat-breakdown{margin-top:8px;display:flex;gap:16px}
+.sb-item{font-size:.75rem}
+.sb-cash{color:var(--amber)}
+.sb-stock{color:var(--blue)}
+
+/* toolbar */
+.toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.search-wrap{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:var(--r);background:var(--surface);overflow:hidden;transition:border-color .15s;min-width:200px;max-width:280px}
+.search-wrap:focus-within{border-color:var(--blue-mid)}
+.search-ico{padding:0 9px;color:var(--text-3);font-size:.88rem}
+.search-input{flex:1;padding:7px 4px 7px 0;border:none;outline:none;font-size:.84rem;background:transparent;color:var(--text)}
+.filter-select{padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--r);background:var(--surface);font-size:.82rem;color:var(--text-2);outline:none;cursor:pointer;transition:border-color .15s}
+.filter-select:focus{border-color:var(--blue-mid)}
+.btn{padding:7px 14px;border-radius:var(--r);border:none;font-size:.82rem;font-weight:600;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:#1d53b0}
+.btn-ghost{background:var(--surface);color:var(--text-2);border:1.5px solid var(--border)}
+.btn-ghost:hover{background:var(--gray-lt)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-danger:hover{background:#a93226}
+.btn-danger:disabled{background:#ccc;cursor:not-allowed}
+
+/* table */
+.table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;white-space:nowrap;min-width:1300px}
+thead th{background:#f8fafd;padding:9px 12px;font-size:.71rem;font-weight:700;color:var(--text-3);text-align:left;border-bottom:1px solid var(--border);letter-spacing:.03em;text-transform:uppercase;white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--border-lt);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:#f9fafc}
+tbody tr.selected-row{background:#eff4ff}
+tbody td{padding:9px 12px;font-size:.81rem;color:var(--text-2);vertical-align:middle}
+tbody td.mono{font-size:.77rem;color:var(--text-3);font-feature-settings:'tnum'}
+tbody td.name-cell{font-weight:600;color:var(--text)}
+.tbl-org{max-width:150px;overflow:hidden;text-overflow:ellipsis}
+
+/* 合并列（两行） */
+.cell-main{font-size:.82rem;font-weight:600;color:var(--text-2)}
+.cell-sub{font-size:.71rem;color:var(--text-3);font-style:italic;margin-top:1px}
+
+/* 行内编辑基数 */
+.bonus-cell-wrap{display:flex;align-items:center;gap:4px}
+.bonus-val{font-size:.82rem;font-weight:700;color:var(--blue)}
+.bonus-edit-btn{width:18px;height:18px;border:none;background:none;color:var(--text-3);cursor:pointer;font-size:.75rem;display:flex;align-items:center;justify-content:center;border-radius:3px;transition:all .15s}
+.bonus-edit-btn:hover{background:var(--blue-lt);color:var(--blue)}
+.bonus-input-wrap{display:flex;align-items:center;gap:4px}
+.bonus-input{width:80px;padding:3px 6px;border:1.5px solid var(--blue-mid);border-radius:4px;font-size:.82rem;font-weight:600;color:var(--blue);outline:none}
+.bonus-save-btn{padding:3px 7px;border:none;background:var(--blue);color:#fff;border-radius:4px;font-size:.75rem;cursor:pointer}
+.bonus-cancel-btn{padding:3px 7px;border:1px solid var(--border);background:var(--surface);color:var(--text-3);border-radius:4px;font-size:.75rem;cursor:pointer}
+
+/* 勾选框 */
+.row-check{width:15px;height:15px;cursor:pointer;accent-color:var(--blue)}
+
+/* badge */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:.71rem;font-weight:600}
+.badge-S{background:#fef3c7;color:#92400e;border:1px solid #fcd34d}
+.badge-A{background:var(--blue-lt);color:var(--blue);border:1px solid #bfdbfe}
+.badge-pending{background:var(--amber-lt);color:var(--amber);border:1px solid #fcd34d}
+.badge-done{background:var(--green-lt);color:var(--green);border:1px solid #6ee7b7}
+.badge-cash{background:var(--amber-lt);color:var(--amber)}
+.badge-stock{background:var(--blue-lt);color:var(--blue)}
+.badge-none{color:var(--text-3);font-size:.78rem}
+
+/* 头像 */
+.avatar-link{display:flex;align-items:center;gap:7px;cursor:pointer}
+.avatar-link:hover .emp-name-text{text-decoration:underline;text-underline-offset:2px;color:var(--blue)}
+.avatar-circle{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;color:#fff;flex-shrink:0}
+
+/* table footer */
+.table-footer{padding:10px 16px;border-top:1px solid var(--border-lt);font-size:.78rem;color:var(--text-3);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+
+/* ===== 事业部看板 ===== */
+.dept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:0}
+.dept-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px 18px}
+.dept-name{font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.dept-total{font-size:.75rem;color:var(--text-3)}
+.dept-progress-wrap{margin-bottom:8px}
+.dept-progress-bar{height:6px;background:var(--border-lt);border-radius:3px;overflow:hidden;margin-bottom:4px}
+.dept-progress-fill{height:100%;border-radius:3px;background:var(--green);transition:width .4s}
+.dept-progress-txt{font-size:.71rem;color:var(--text-3)}
+.dept-choices{display:flex;gap:12px;font-size:.75rem}
+.dc-cash{color:var(--amber);font-weight:600}
+.dc-stock{color:var(--blue);font-weight:600}
+.dc-pending{color:var(--text-3)}
+
+/* modal */
+.modal-backdrop{position:fixed;inset:0;background:rgba(15,20,35,.45);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal-backdrop.hidden{display:none}
+.modal{background:var(--surface);border-radius:var(--r-lg);width:100%;max-width:580px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:modalIn .2s cubic-bezier(.25,1,.5,1) both}
+@keyframes modalIn{from{opacity:0;transform:translateY(-16px) scale(.97)}to{opacity:1;transform:none}}
+.modal-hd{padding:18px 22px 14px;border-bottom:1px solid var(--border-lt);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:1rem;font-weight:700;color:var(--text)}
+.modal-close{width:28px;height:28px;border-radius:50%;border:none;background:var(--gray-lt);color:var(--text-3);display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all .15s}
+.modal-close:hover{background:var(--border);color:var(--text)}
+.modal-body{padding:18px 22px}
+.modal-footer{padding:14px 22px;border-top:1px solid var(--border-lt);display:flex;justify-content:flex-end;gap:8px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-full{grid-column:span 2}
+.form-field{display:flex;flex-direction:column;gap:4px}
+.form-label{font-size:.74rem;font-weight:600;color:var(--text-2)}
+.form-req{color:var(--red);margin-left:2px}
+.form-input,.form-select{padding:8px 11px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:.85rem;color:var(--text);background:var(--surface);transition:border-color .15s;outline:none}
+.form-input:focus,.form-select:focus{border-color:var(--blue-mid)}
+.form-hint{font-size:.71rem;color:var(--text-3)}
+
+/* toast */
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(16px);background:#1e2535;color:#e8edf5;padding:10px 20px;border-radius:20px;font-size:.82rem;font-weight:500;box-shadow:0 4px 16px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:all .25s cubic-bezier(.25,1,.5,1);z-index:900}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-left">
+    <span class="nav-title">特别奖励管理后台</span>
+    <span class="nav-sub">2025年度绩效特别奖励</span>
+  </div>
+  <a href="employee.html" class="nav-link">← 员工选择页</a>
+</div>
+
+<div class="main">
+  <!-- Tab -->
+  <div class="page-tabs">
+    <button class="page-tab active" data-tab="list">员工名单</button>
+    <button class="page-tab" data-tab="dept">事业部看板</button>
+  </div>
+
+  <!-- ===== 员工名单页 ===== -->
+  <div id="tab-list">
+    <!-- 统计看板（2个） -->
+    <div class="stat-grid" id="stat-grid"></div>
+
+    <!-- 工具栏 -->
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-ico">🔍</span>
+        <input class="search-input" type="text" id="search-input" placeholder="搜索姓名 / 工号 / 用户名…" />
+      </div>
+      <select class="filter-select" id="filter-dept">
+        <option value="">全部事业部</option>
+      </select>
+      <select class="filter-select" id="filter-perf">
+        <option value="">全部绩效</option>
+        <option value="S">S</option>
+        <option value="A">A</option>
+      </select>
+      <select class="filter-select" id="filter-status">
+        <option value="">全部状态</option>
+        <option value="pending">待选择</option>
+        <option value="submitted">已提交</option>
+      </select>
+      <select class="filter-select" id="filter-choice">
+        <option value="">全部选择结果</option>
+        <option value="cash">现金</option>
+        <option value="stock">股票</option>
+      </select>
+      <button class="btn btn-primary" id="btn-add">+ 新增员工</button>
+      <button class="btn btn-danger" id="btn-del-selected" disabled>删除所选</button>
+      <button class="btn btn-ghost" id="btn-export">导出 CSV（示意）</button>
+    </div>
+
+    <!-- 表格 -->
+    <div class="table-card">
+      <div class="table-wrap">
+        <table id="emp-table">
+          <thead>
+            <tr>
+              <th style="width:32px"><input type="checkbox" id="check-all" /></th>
+              <th>工号</th>
+              <th>用户名</th>
+              <th>姓名</th>
+              <th>所属组织 / 事业部</th>
+              <th>HRBP</th>
+              <th>绩效</th>
+              <th>月基薪 / 薪酬构成</th>
+              <th>26年调薪</th>
+              <th>特别奖励基数</th>
+              <th>选择状态</th>
+              <th>选择结果</th>
+            </tr>
+          </thead>
+          <tbody id="emp-tbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span id="tbl-count">加载中…</span>
+        <span id="tbl-selected" style="color:var(--blue)"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 事业部看板页 ===== -->
+  <div id="tab-dept" class="hidden">
+    <div class="dept-grid" id="dept-grid"></div>
+  </div>
+</div>
+
+<!-- 新增员工 Modal -->
+<div class="modal-backdrop hidden" id="modal-emp">
+  <div class="modal">
+    <div class="modal-hd">
+      <span class="modal-title" id="modal-emp-title">新增员工</span>
+      <button class="modal-close" id="modal-emp-close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field"><label class="form-label">工号<span class="form-req">*</span></label><input class="form-input" id="f-empId" placeholder="如 KS20180342"/></div>
+        <div class="form-field"><label class="form-label">用户名<span class="form-req">*</span></label><input class="form-input" id="f-username" placeholder="如 zhangmingyuan"/></div>
+        <div class="form-field"><label class="form-label">姓名<span class="form-req">*</span></label><input class="form-input" id="f-name" placeholder="如 张明远"/></div>
+        <div class="form-field"><label class="form-label">绩效<span class="form-req">*</span></label><select class="form-select" id="f-perf"><option value="">请选择</option><option value="S">S</option><option value="A">A</option></select></div>
+        <div class="form-field form-full"><label class="form-label">所属组织<span class="form-req">*</span></label><input class="form-input" id="f-org" placeholder="如 商业化产品中心 · 效率工具团队"/></div>
+        <div class="form-field form-full"><label class="form-label">事业部<span class="form-req">*</span></label>
+          <select class="form-select" id="f-bu">
+            <option value="">请选择</option>
+            <option>研发线</option><option>可灵AI事业部</option><option>电商事业部</option>
+            <option>商业化事业部</option><option>综合支持与效率线</option><option>KSIB</option>
+            <option>财经线</option><option>游戏事业部</option><option>廉正合规部</option>
+            <option>生活服务事业部</option><option>经营管理委员会</option><option>人力资源线</option>
+            <option>主站线</option><option>安全合规线</option><option>社区科学线</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-label">HRBP<span class="form-req">*</span></label><input class="form-input" id="f-hrbp" placeholder="HRBP 姓名"/></div>
+        <div class="form-field"><label class="form-label">月基薪（25年12月31日）<span class="form-req">*</span></label><input class="form-input" id="f-base2025" type="number" placeholder="如 45000" min="0"/></div>
+        <div class="form-field"><label class="form-label">薪酬构成（25年12月31日）</label><input class="form-input" id="f-payComp2025" placeholder="如 12+4季度"/></div>
+        <div class="form-field"><label class="form-label">26年调薪比例</label><input class="form-input" id="f-adjustRatio" placeholder="如 10%"/></div>
+        <div class="form-field"><label class="form-label">当前月基薪<span class="form-req">*</span></label><input class="form-input" id="f-currentBase" type="number" placeholder="如 49500" min="0"/></div>
+        <div class="form-field"><label class="form-label">当前薪酬构成</label><input class="form-input" id="f-currentPayComp" placeholder="如 12+4季度"/></div>
+        <div class="form-field"><label class="form-label">特别奖励基数<span class="form-req">*</span></label><input class="form-input" id="f-bonusBase" type="number" placeholder="如 49500" min="0"/><span class="form-hint">默认与当前月基薪一致</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="modal-emp-cancel">取消</button>
+      <button class="btn btn-primary" id="modal-emp-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 删除确认 Modal -->
+<div class="modal-backdrop hidden" id="modal-del">
+  <div class="modal" style="max-width:360px">
+    <div style="padding:22px;text-align:center">
+      <div style="font-size:2rem;margin-bottom:10px">🗑️</div>
+      <div style="font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:6px">确认删除？</div>
+      <div style="font-size:.88rem;color:var(--text-2);line-height:1.6" id="del-confirm-text">将从名单中删除所选员工，操作不可恢复。</div>
+    </div>
+    <div style="padding:14px 22px;border-top:1px solid var(--border-lt);display:flex;justify-content:flex-end;gap:8px">
+      <button class="btn btn-ghost" id="modal-del-cancel">取消</button>
+      <button class="btn btn-danger" id="modal-del-ok">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ====================================================================
+// 事业部列表
+// ====================================================================
+const BU_LIST=[
+  '研发线','可灵AI事业部','电商事业部','商业化事业部','综合支持与效率线','KSIB',
+  '财经线','游戏事业部','廉正合规部','生活服务事业部','经营管理委员会',
+  '人力资源线','主站线','安全合规线','社区科学线'
+];
+const PAY_COMP_POOL=['12+4季度','12+4季度+2年度','12+18月度','12+12月度','12+4季度+2月度','月薪制'];
+const HRBP_POOL=['王雪梅','赵丽娟','陈嘉欣','林晓彤','刘梅','张婷','周思远'];
+const STATUS_POOL=['pending','pending','pending','submitted','submitted'];
+const CHOICE_MAP={submitted:()=>Math.random()<0.5?'cash':'stock',pending:()=>null};
+const AVATAR_COLORS=['#6366f1','#8b5cf6','#ec4899','#f43f5e','#f97316','#eab308','#22c55e','#14b8a6','#3b82f6','#a855f7'];
+
+// ====================================================================
+// 生成 600 人模拟数据
+// ====================================================================
+const NAMES_POOL=['张','王','李','赵','陈','刘','杨','黄','吴','周','林','徐','孙','马','朱','胡','郭','何','罗','高'];
+const NAMES2=['明远','晓东','佳欣','雨薇','浩然','思远','梦琪','宇航','雅静','鹏飞','子涵','欣怡','振宇','雅婷','博文','慧敏','乾坤','紫涵','若曦','辰风','锦程','沁雪','语嫣','云鹤','宏铭'];
+function randName(){
+  return NAMES_POOL[Math.floor(Math.random()*NAMES_POOL.length)]+
+    NAMES2[Math.floor(Math.random()*NAMES2.length)];
+}
+function randPY(name){
+  const map={'张':'zhang','王':'wang','李':'li','赵':'zhao','陈':'chen','刘':'liu','杨':'yang','黄':'huang','吴':'wu','周':'zhou','林':'lin','徐':'xu','孙':'sun','马':'ma','朱':'zhu','胡':'hu','郭':'guo','何':'he','罗':'luo','高':'gao'};
+  const last=name[0];
+  return (map[last]||'user')+name.slice(1).toLowerCase().replace(/[^\x00-\x7F]/g,c=>c.charCodeAt(0)%26+97).slice(0,6)+String(Math.floor(Math.random()*99));
+}
+function rand(arr){return arr[Math.floor(Math.random()*arr.length)]}
+function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+
+const PRE_LIST = [
+  {empId:'KS20180342',username:'zhangmingyuan',name:'张明远',org:'商业化产品中心·效率工具团队',bu:'商业化事业部',hrbp:'王雪梅',perf:'S',base2025:45000,payComp2025:'12+4季度',adjustRatio:'11.1%',currentBase:50000,currentPayComp:'12+4季度',bonusBase:50000,status:'pending',choice:null,submitAt:null,modifyAt:null},
+  {empId:'KS20200815',username:'wangfang',name:'Wang Fang',org:'International Growth·Southeast Asia',bu:'综合支持与效率线',hrbp:'陈嘉欣',perf:'A',base2025:76000,payComp2025:'月薪制',adjustRatio:'11.8%',currentBase:85000,currentPayComp:'月薪制',bonusBase:85000,status:'submitted',choice:'stock',submitAt:'2026-07-03 10:22:15',modifyAt:null},
+  {empId:'KS20170601',username:'lijiaxin',name:'李佳欣',org:'技术中台·基础架构',bu:'研发线',hrbp:'赵丽娟',perf:'S',base2025:58000,payComp2025:'12+4季度',adjustRatio:'12.1%',currentBase:65000,currentPayComp:'12+4季度',bonusBase:65000,status:'submitted',choice:'cash',submitAt:'2026-07-02 14:55:30',modifyAt:'2026-07-04 09:18:05'},
+  {empId:'KS20190723',username:'zhaoxiaodong',name:'赵晓东',org:'短视频业务·创作者生态',bu:'主站线',hrbp:'林晓彤',perf:'A',base2025:52000,payComp2025:'12+4季度+2年度',adjustRatio:'-7.7%',currentBase:48000,currentPayComp:'12+4季度',bonusBase:48000,status:'pending',choice:null,submitAt:null,modifyAt:null},
+];
+
+let empList = [...PRE_LIST];
+const startYear=2015, endYear=2024;
+for(let i=0;i<596;i++){
+  const yr=randInt(startYear,endYear);
+  const seq=String(randInt(100,999));
+  const empId='KS'+yr+seq;
+  const name=randName();
+  const username=randPY(name);
+  const bu=rand(BU_LIST);
+  const dept=bu+'·'+rand(['研发部','产品部','运营部','设计部','数据部','平台部']);
+  const perf=Math.random()<0.4?'S':'A';
+  const base2025=randInt(20,80)*1000;
+  const ratio=(Math.random()<0.15?-1:1)*randInt(5,30);
+  const adjustRatio=(ratio>0?'+':'')+ratio+'%';
+  const currentBase=Math.round(base2025*(1+ratio/100)/1000)*1000;
+  const payComp=rand(PAY_COMP_POOL);
+  const currentPayComp=rand(PAY_COMP_POOL);
+  const bonusBase=Math.random()<0.05?Math.round(currentBase*0.9):currentBase;
+  const st=rand(STATUS_POOL);
+  const choice=CHOICE_MAP[st]();
+  const submitAt=st==='submitted'?`2026-07-0${randInt(1,8)} ${randInt(9,22)}:${String(randInt(0,59)).padStart(2,'0')}:${String(randInt(0,59)).padStart(2,'0')}`:null;
+  empList.push({empId,username,name,org:dept,bu,hrbp:rand(HRBP_POOL),perf,base2025,payComp2025:payComp,adjustRatio,currentBase,currentPayComp,bonusBase,status:st,choice,submitAt,modifyAt:null});
+}
+
+// ====================================================================
+// 工具
+// ====================================================================
+function fmtNum(n){return n!=null?n.toLocaleString('zh-CN'):'—'}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400)}
+function avatarBg(name){let h=0;for(const c of name)h=(h*31+c.charCodeAt(0))&0xffff;return AVATAR_COLORS[h%AVATAR_COLORS.length]}
+function avatarChar(name){return name.charAt(0).toUpperCase()}
+
+// ====================================================================
+// 统计看板
+// ====================================================================
+function renderStats(){
+  const total=empList.length;
+  const done=empList.filter(e=>e.status==='submitted').length;
+  const pending=empList.filter(e=>e.status==='pending').length;
+  const cash=empList.filter(e=>e.choice==='cash').length;
+  const stock=empList.filter(e=>e.choice==='stock').length;
+  const pctDone=total?Math.round(done/total*100):0;
+  const pctPend=total?Math.round(pending/total*100):0;
+  const pctCash=done?Math.round(cash/done*100):0;
+  const pctStock=done?Math.round(stock/done*100):0;
+  document.getElementById('stat-grid').innerHTML=`
+    <div class="stat-card">
+      <div class="stat-label">员工总数</div>
+      <div class="stat-value total">${total}</div>
+      <div class="stat-sub">纳入本次特别奖励名单</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">已提交选择</div>
+      <div class="stat-value done">${done} <span style="font-size:1rem;font-weight:500;color:var(--text-3)">${pctDone}%</span></div>
+      <div class="stat-breakdown">
+        <span class="sb-item sb-cash">现金 ${cash} 人（${pctCash}%）</span>
+        <span class="sb-item sb-stock">股票 ${stock} 人（${pctStock}%）</span>
+      </div>
+      <div class="stat-sub">待提交 ${pending} 人（${pctPend}%）</div>
+    </div>`;
+}
+
+// ====================================================================
+// 表格渲染
+// ====================================================================
+let selectedIds=new Set();
+
+function renderTable(list){
+  const tbody=document.getElementById('emp-tbody');
+  const count=document.getElementById('tbl-count');
+  const sel=document.getElementById('tbl-selected');
+
+  const statusBadge={
+    pending:`<span class="badge badge-pending">待选择</span>`,
+    submitted:`<span class="badge badge-done">已提交</span>`,
+  };
+  const choiceBadge={
+    cash:`<span class="badge badge-cash">现金</span>`,
+    stock:`<span class="badge badge-stock">股票</span>`,
+  };
+
+  if(!list.length){
+    tbody.innerHTML=`<tr><td colspan="12" style="text-align:center;padding:32px;color:var(--text-3)">暂无匹配员工</td></tr>`;
+    count.textContent='0 名员工';
+    sel.textContent='';
+    return;
+  }
+
+  tbody.innerHTML=list.map(e=>{
+    const checked=selectedIds.has(e.empId);
+    const isNeg=e.adjustRatio&&e.adjustRatio.startsWith('-');
+    return `<tr class="${checked?'selected-row':''}" data-id="${e.empId}">
+      <td><input type="checkbox" class="row-check" data-id="${e.empId}" ${checked?'checked':''}></td>
+      <td class="mono">${e.empId}</td>
+      <td class="mono">${e.username}</td>
+      <td class="name-cell">
+        <a href="employee.html?emp=${e.empId}" class="avatar-link" title="查看员工选择页" target="_blank">
+          <div class="avatar-circle" style="background:${avatarBg(e.name)}">${avatarChar(e.name)}</div>
+          <span class="emp-name-text">${e.name}</span>
+        </a>
+      </td>
+      <td class="tbl-org" title="${e.org}">
+        <div class="cell-main">${e.bu}</div>
+        <div class="cell-sub">${e.org}</div>
+      </td>
+      <td>${e.hrbp}</td>
+      <td><span class="badge badge-${e.perf}">${e.perf}</span></td>
+      <td>
+        <div class="cell-main">${fmtNum(e.currentBase)}</div>
+        <div class="cell-sub">25年：${fmtNum(e.base2025)}</div>
+        <div class="cell-main" style="margin-top:2px;font-size:.75rem;color:var(--text-3)">${e.currentPayComp||'—'}</div>
+        <div class="cell-sub">${e.payComp2025||'—'}</div>
+      </td>
+      <td style="font-weight:600;color:${isNeg?'var(--red)':'var(--green)'}">${e.adjustRatio||'—'}</td>
+      <td>
+        <div class="bonus-cell-wrap" id="bonus-wrap-${e.empId}">
+          <span class="bonus-val" id="bonus-val-${e.empId}">${fmtNum(e.bonusBase)}</span>
+          <button class="bonus-edit-btn" title="修改基数" onclick="startEditBase('${e.empId}')">✎</button>
+        </div>
+      </td>
+      <td>${statusBadge[e.status]||'—'}</td>
+      <td>${e.choice?choiceBadge[e.choice]:'<span class="badge-none">—</span>'}</td>
+    </tr>`;
+  }).join('');
+
+  count.textContent=`共 ${list.length} 名员工`;
+  updateSelInfo();
+
+  // 行内勾选事件
+  tbody.querySelectorAll('.row-check').forEach(cb=>{
+    cb.addEventListener('change',()=>{
+      const id=cb.dataset.id;
+      if(cb.checked)selectedIds.add(id);else selectedIds.delete(id);
+      const row=cb.closest('tr');
+      if(row)row.classList.toggle('selected-row',cb.checked);
+      updateSelInfo();
+    });
+  });
+}
+
+function updateSelInfo(){
+  const sel=document.getElementById('tbl-selected');
+  const btn=document.getElementById('btn-del-selected');
+  if(selectedIds.size>0){
+    sel.textContent=`已选 ${selectedIds.size} 人`;
+    btn.disabled=false;
+  }else{
+    sel.textContent='';
+    btn.disabled=true;
+  }
+  const checkAll=document.getElementById('check-all');
+  if(checkAll){
+    const vis=getFiltered();
+    checkAll.checked=vis.length>0&&vis.every(e=>selectedIds.has(e.empId));
+    checkAll.indeterminate=!checkAll.checked&&vis.some(e=>selectedIds.has(e.empId));
+  }
+}
+
+document.getElementById('check-all').addEventListener('change',e=>{
+  const vis=getFiltered();
+  if(e.target.checked)vis.forEach(emp=>selectedIds.add(emp.empId));
+  else vis.forEach(emp=>selectedIds.delete(emp.empId));
+  renderTable(vis);
+});
+
+// ====================================================================
+// 过滤
+// ====================================================================
+function getFiltered(){
+  const q=(document.getElementById('search-input').value||'').trim().toLowerCase();
+  const dept=(document.getElementById('filter-dept').value||'');
+  const perf=(document.getElementById('filter-perf').value||'');
+  const status=(document.getElementById('filter-status').value||'');
+  const choice=(document.getElementById('filter-choice').value||'');
+  return empList.filter(e=>{
+    if(q&&!(e.name.toLowerCase().includes(q)||e.empId.toLowerCase().includes(q)||e.username.toLowerCase().includes(q)))return false;
+    if(dept&&e.bu!==dept)return false;
+    if(perf&&e.perf!==perf)return false;
+    if(status&&e.status!==status)return false;
+    if(choice&&e.choice!==choice)return false;
+    return true;
+  });
+}
+
+function refresh(){renderStats();renderTable(getFiltered());renderDept();}
+
+// ====================================================================
+// 内联编辑基数
+// ====================================================================
+window.startEditBase=function(empId){
+  const emp=empList.find(e=>e.empId===empId);
+  if(!emp)return;
+  const wrap=document.getElementById('bonus-wrap-'+empId);
+  if(!wrap)return;
+  wrap.innerHTML=`
+    <div class="bonus-input-wrap">
+      <input class="bonus-input" id="bi-${empId}" type="number" value="${emp.bonusBase}" min="0"/>
+      <button class="bonus-save-btn" onclick="saveBase('${empId}')">✓</button>
+      <button class="bonus-cancel-btn" onclick="cancelBase('${empId}','${emp.bonusBase}')">✕</button>
+    </div>`;
+  const inp=document.getElementById('bi-'+empId);
+  if(inp){inp.focus();inp.select();}
+};
+window.saveBase=function(empId){
+  const inp=document.getElementById('bi-'+empId);
+  if(!inp)return;
+  const val=parseFloat(inp.value);
+  if(isNaN(val)||val<=0){alert('请输入有效的基数金额');return}
+  const idx=empList.findIndex(e=>e.empId===empId);
+  if(idx>=0){empList[idx].bonusBase=val;showToast(`✓ 基数已修改为 ${val.toLocaleString('zh-CN')} 元`)}
+  refresh();
+};
+window.cancelBase=function(empId,oldVal){
+  const wrap=document.getElementById('bonus-wrap-'+empId);
+  if(wrap)wrap.innerHTML=`<span class="bonus-val" id="bonus-val-${empId}">${parseFloat(oldVal).toLocaleString('zh-CN')}</span><button class="bonus-edit-btn" title="修改基数" onclick="startEditBase('${empId}')">✎</button>`;
+};
+
+// ====================================================================
+// 新增员工
+// ====================================================================
+function openAddEmp(){
+  document.getElementById('modal-emp-title').textContent='新增员工';
+  ['empId','username','name','perf','org','bu','hrbp','base2025','payComp2025','adjustRatio','currentBase','currentPayComp','bonusBase'].forEach(f=>{
+    const el=document.getElementById('f-'+f);if(el)el.value='';
+  });
+  document.getElementById('modal-emp').classList.remove('hidden');
+}
+function closeEmpModal(){document.getElementById('modal-emp').classList.add('hidden')}
+function saveEmp(){
+  const empId=document.getElementById('f-empId').value.trim();
+  const username=document.getElementById('f-username').value.trim();
+  const name=document.getElementById('f-name').value.trim();
+  const perf=document.getElementById('f-perf').value;
+  const org=document.getElementById('f-org').value.trim();
+  const bu=document.getElementById('f-bu').value;
+  const hrbp=document.getElementById('f-hrbp').value.trim();
+  const base2025=parseFloat(document.getElementById('f-base2025').value)||0;
+  const payComp2025=document.getElementById('f-payComp2025').value.trim();
+  const adjustRatio=document.getElementById('f-adjustRatio').value.trim();
+  const currentBase=parseFloat(document.getElementById('f-currentBase').value)||0;
+  const currentPayComp=document.getElementById('f-currentPayComp').value.trim();
+  const bonusBase=parseFloat(document.getElementById('f-bonusBase').value)||0;
+  if(!empId||!name||!username||!perf||!org||!bu||!hrbp||!base2025||!currentBase||!bonusBase){alert('请填写所有必填字段（带 * 号的）');return}
+  if(empList.find(e=>e.empId===empId)){alert('工号已存在，请修改');return}
+  empList.push({empId,username,name,org,bu,hrbp,perf,base2025,payComp2025,adjustRatio,currentBase,currentPayComp,bonusBase,status:'pending',choice:null,submitAt:null,modifyAt:null});
+  showToast(`✓ 已新增员工 ${name}`);
+  closeEmpModal();refresh();
+}
+
+// ====================================================================
+// 批量删除（勾选）
+// ====================================================================
+function openDelSelected(){
+  const n=selectedIds.size;
+  document.getElementById('del-confirm-text').textContent=`将从名单中删除已选 ${n} 名员工，操作不可恢复。`;
+  document.getElementById('modal-del').classList.remove('hidden');
+}
+function closeDel(){document.getElementById('modal-del').classList.add('hidden')}
+function doDelete(){
+  const names=[];
+  selectedIds.forEach(id=>{const e=empList.find(x=>x.empId===id);if(e)names.push(e.name)});
+  empList=empList.filter(e=>!selectedIds.has(e.empId));
+  selectedIds.clear();
+  showToast(`已删除 ${names.length} 名员工`);
+  closeDel();refresh();
+}
+
+// ====================================================================
+// 事业部看板
+// ====================================================================
+function renderDept(){
+  const deptMap={};
+  empList.forEach(e=>{
+    if(!deptMap[e.bu])deptMap[e.bu]={total:0,submitted:0,cash:0,stock:0,pending:0};
+    const d=deptMap[e.bu];
+    d.total++;
+    if(e.status==='submitted'){d.submitted++;if(e.choice==='cash')d.cash++;else d.stock++;}
+    else d.pending++;
+  });
+  const container=document.getElementById('dept-grid');
+  container.innerHTML=BU_LIST.filter(b=>deptMap[b]).map(bu=>{
+    const d=deptMap[bu];
+    const pct=d.total?Math.round(d.submitted/d.total*100):0;
+    const pctCash=d.submitted?Math.round(d.cash/d.submitted*100):0;
+    const pctStock=d.submitted?Math.round(d.stock/d.submitted*100):0;
+    return `<div class="dept-card">
+      <div class="dept-name">${bu}<span class="dept-total">${d.total} 人</span></div>
+      <div class="dept-progress-wrap">
+        <div class="dept-progress-bar"><div class="dept-progress-fill" style="width:${pct}%"></div></div>
+        <div class="dept-progress-txt">已提交 ${d.submitted} 人，完成率 ${pct}%</div>
+      </div>
+      <div class="dept-choices">
+        <span class="dc-cash">现金 ${d.cash}（${pctCash}%）</span>
+        <span class="dc-stock">股票 ${d.stock}（${pctStock}%）</span>
+        <span class="dc-pending">待选 ${d.pending}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ====================================================================
+// 事件绑定
+// ====================================================================
+['search-input','filter-dept','filter-perf','filter-status','filter-choice'].forEach(id=>{
+  document.getElementById(id).addEventListener(id==='search-input'?'input':'change',()=>{
+    selectedIds.clear();renderTable(getFiltered());updateSelInfo();
+  });
+});
+document.getElementById('btn-add').addEventListener('click',openAddEmp);
+document.getElementById('btn-del-selected').addEventListener('click',openDelSelected);
+document.getElementById('btn-export').addEventListener('click',()=>showToast('CSV 导出功能（示意）'));
+document.getElementById('modal-emp-close').addEventListener('click',closeEmpModal);
+document.getElementById('modal-emp-cancel').addEventListener('click',closeEmpModal);
+document.getElementById('modal-emp-save').addEventListener('click',saveEmp);
+document.getElementById('modal-emp').addEventListener('click',e=>{if(e.target===document.getElementById('modal-emp'))closeEmpModal()});
+document.getElementById('modal-del-cancel').addEventListener('click',closeDel);
+document.getElementById('modal-del-ok').addEventListener('click',doDelete);
+document.getElementById('modal-del').addEventListener('click',e=>{if(e.target===document.getElementById('modal-del'))closeDel()});
+document.getElementById('f-currentBase').addEventListener('input',()=>{
+  const v=document.getElementById('f-currentBase').value;
+  document.getElementById('f-bonusBase').value=v;
+});
+
+// Tab 切换
+document.querySelectorAll('.page-tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.page-tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab=btn.dataset.tab;
+    document.getElementById('tab-list').classList.toggle('hidden',tab!=='list');
+    document.getElementById('tab-dept').classList.toggle('hidden',tab!=='dept');
+  });
+});
+
+// 填充事业部筛选下拉
+const deptSel=document.getElementById('filter-dept');
+BU_LIST.forEach(b=>{const o=document.createElement('option');o.value=b;o.textContent=b;deptSel.appendChild(o)});
+
+// ====================================================================
+// 初始化
+// ====================================================================
+refresh();
+</script>
+</body>
+</html>

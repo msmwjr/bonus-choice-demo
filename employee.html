@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2025年度绩效特别奖励选择</title>
+<style>
+:root {
+  --bg:         #f5f6f8;
+  --surface:    #ffffff;
+  --border:     #e2e5ea;
+  --border-lt:  #edf0f4;
+  --blue:       #2563c7;
+  --blue-lt:    #eff4ff;
+  --blue-mid:   #4b80e0;
+  --text:       #1a1d23;
+  --text-2:     #4a5263;
+  --text-3:     #8a93a6;
+  --green:      #16875a;
+  --green-lt:   #edfaf4;
+  --red:        #c0392b;
+  --red-lt:     #fdf2f1;
+  --amber:      #b45309;
+  --amber-lt:   #fffbeb;
+  --gray-lt:    #f3f4f6;
+  --r: 8px; --r-sm: 5px; --r-lg: 12px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px;-webkit-font-smoothing:antialiased}
+body{font-family:'PingFang SC','Noto Sans SC','Microsoft YaHei',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+button{font-family:inherit;cursor:pointer}
+input{font-family:inherit}
+a{text-decoration:none}
+
+/* ===== 演示条 ===== */
+#demo-bar{
+  position:sticky;top:0;z-index:100;background:#1e2535;
+  padding:8px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+}
+.demo-label{font-size:.72rem;color:#7a869a;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;flex-shrink:0}
+.demo-tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.demo-tabs::-webkit-scrollbar{display:none}
+.demo-tab{padding:4px 14px;border-radius:4px;border:1px solid #3a4255;background:transparent;color:#a0aab8;font-size:.78rem;white-space:nowrap;transition:all .15s}
+.demo-tab:hover{background:#2e3850;color:#d0d8e8}
+.demo-tab.active{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600}
+.demo-back{
+  margin-left:auto;flex-shrink:0;
+  font-size:.75rem;color:#8a9ab8;white-space:nowrap;
+  padding:4px 11px;border:1px solid #3a4255;border-radius:4px;
+  transition:all .15s;
+}
+.demo-back:hover{color:#fff;border-color:#5a6882;background:#2e3850}
+
+/* ===== 主容器 ===== */
+#app{max-width:680px;margin:0 auto;padding:24px 16px 64px}
+
+/* ===== 通用卡片 ===== */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:12px}
+
+/* ===== 页面头部 ===== */
+.page-header{padding:20px 24px 16px}
+.ph-row1{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.ph-title{font-size:1.22rem;font-weight:700;color:var(--text);line-height:1.3}
+.ph-policy-link{
+  font-size:.78rem;color:var(--blue);
+  display:flex;align-items:center;gap:4px;flex-shrink:0;
+  padding:4px 10px;border:1px solid #c8d8f5;border-radius:var(--r-sm);background:var(--blue-lt);transition:all .15s;margin-top:2px;
+}
+.ph-policy-link:hover{background:#dce8ff}
+.ph-meta{display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-size:.8rem;color:var(--text-3)}
+.ph-meta-item{display:flex;align-items:center;gap:5px}
+.ph-meta-hl{color:var(--text-2);font-weight:600}
+.ph-meta-hl.urgent{color:#b45309}
+.status-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:600}
+.sp-pending {background:var(--amber-lt);color:var(--amber); border:1px solid #fcd34d}
+.sp-done    {background:var(--green-lt);color:var(--green); border:1px solid #6ee7b7}
+.sp-locked  {background:var(--gray-lt); color:var(--text-3);border:1px solid var(--border)}
+.sp-cashonly{background:var(--blue-lt); color:var(--blue);  border:1px solid #bfdbfe}
+
+/* ===== 员工信息卡 ===== */
+.emp-card{padding:20px 24px}
+/* 上区：4字段，2列 */
+.emp-fields-top{display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;margin-bottom:18px}
+@media(max-width:440px){.emp-fields-top{grid-template-columns:1fr}}
+.ef-label{font-size:.72rem;color:var(--text-3);margin-bottom:2px}
+.ef-value{font-size:.88rem;font-weight:600;color:var(--text)}
+/* 绩效 badge */
+.perf-badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:4px;font-size:.82rem;font-weight:700;line-height:1.6}
+.perf-S{background:#fef3c7;color:#92400e;border:1px solid #fcd34d}
+.perf-A{background:var(--blue-lt);color:var(--blue);border:1px solid #bfdbfe}
+/* 三格奖励数字行 */
+.bonus-row{display:grid;grid-template-columns:1fr 1px 1fr 1px 1fr;background:#f8fafd;border:1px solid var(--border-lt);border-radius:var(--r);overflow:hidden}
+.bonus-divider{background:var(--border)}
+.bonus-cell{padding:14px 16px}
+.bc-label{font-size:.71rem;color:var(--text-3);margin-bottom:5px}
+.bc-value{font-size:1.28rem;font-weight:800;color:var(--blue);letter-spacing:-.01em}
+.bc-value .unit{font-size:.78rem;font-weight:500;color:var(--text-3);margin-left:2px}
+.bonus-note{margin-top:10px;font-size:.75rem;color:var(--text-3);line-height:1.5}
+/* 提示 */
+.emp-alert{margin-top:12px;padding:9px 13px;border-left:3px solid var(--blue);background:var(--blue-lt);border-radius:0 var(--r-sm) var(--r-sm) 0;font-size:.78rem;color:var(--text-2);line-height:1.5}
+.emp-alert.warn{border-left-color:var(--amber);background:var(--amber-lt);color:var(--amber)}
+
+/* ===== 选择卡片 ===== */
+.choice-wrap{padding:20px 24px}
+.choice-title{font-size:.82rem;font-weight:600;color:var(--text-3);margin-bottom:12px;letter-spacing:.03em;text-transform:uppercase}
+.choice-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:440px){.choice-cards{grid-template-columns:1fr}}
+.ch-card{border:1.5px solid var(--border);border-radius:var(--r);padding:16px;cursor:pointer;position:relative;transition:border-color .15s,background .15s,box-shadow .15s;background:var(--surface);user-select:none}
+.ch-card:not(.disabled):not(.locked-card):hover{border-color:var(--blue-mid);box-shadow:0 2px 8px rgba(37,99,199,.1)}
+.ch-card.selected{border-color:var(--blue);border-left-width:3px;background:var(--blue-lt)}
+.ch-card.disabled{opacity:.45;cursor:not-allowed;background:var(--gray-lt)}
+.ch-card.locked-card{cursor:default}
+.ch-radio{position:absolute;top:12px;right:12px;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;background:var(--surface);transition:all .15s}
+.ch-radio::after{content:'';width:8px;height:8px;border-radius:50%;background:var(--blue);opacity:0;transition:opacity .15s}
+.ch-card.selected .ch-radio{border-color:var(--blue)}
+.ch-card.selected .ch-radio::after{opacity:1}
+.ch-name{font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:7px}
+.ch-desc{list-style:none;display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.ch-desc li{font-size:.78rem;color:var(--text-2);display:flex;align-items:flex-start;gap:5px}
+.ch-desc li::before{content:'—';color:var(--text-3);flex-shrink:0}
+/* 链接行（查看文档 / 咨询小助手） */
+.ch-links{margin-bottom:10px;display:flex;gap:12px;flex-wrap:wrap}
+.ch-link{font-size:.74rem;color:var(--blue);display:inline-flex;align-items:center;gap:3px}
+.ch-link:hover{text-decoration:underline}
+.ch-amount{padding:9px 11px;border-radius:var(--r-sm);background:var(--gray-lt);border:1px solid var(--border-lt)}
+.ch-card.selected .ch-amount{background:#dce8ff;border-color:#bfdbfe}
+.ch-amount-lbl{font-size:.69rem;color:var(--text-3);margin-bottom:2px}
+.ch-amount-val{font-size:1.1rem;font-weight:800;color:var(--text);letter-spacing:-.01em}
+.ch-card.selected .ch-amount-val{color:var(--blue)}
+.ch-amount-unit{font-size:.74rem;color:var(--text-3);margin-left:3px}
+/* 锁定遮罩 */
+.ch-lock-overlay{position:absolute;inset:0;border-radius:var(--r);background:rgba(248,250,252,.92);backdrop-filter:blur(1px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+.ch-lock-ico{font-size:1.3rem}
+.ch-lock-txt{font-size:.74rem;color:var(--red);font-weight:600;text-align:center;padding:0 10px;line-height:1.4}
+/* 股价试算 */
+.stock-calc{margin-top:14px;padding:14px 15px;background:#f8fafd;border:1px solid var(--border-lt);border-radius:var(--r)}
+.sc-title{font-size:.75rem;font-weight:600;color:var(--text-3);margin-bottom:10px}
+.sc-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sc-field{display:flex;flex-direction:column;gap:4px}
+.sc-lbl{font-size:.69rem;color:var(--text-3)}
+.sc-input-wrap{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--surface);overflow:hidden;transition:border-color .15s}
+.sc-input-wrap:focus-within{border-color:var(--blue-mid)}
+.sc-input{width:90px;padding:6px 10px;border:none;outline:none;font-size:.88rem;font-weight:600;background:transparent;color:var(--text)}
+.sc-unit{padding:0 9px;font-size:.74rem;color:var(--text-3);background:var(--gray-lt);border-left:1px solid var(--border-lt);height:34px;display:flex;align-items:center}
+.sc-sep{font-size:.88rem;color:var(--text-3)}
+.sc-result{display:flex;align-items:baseline;gap:4px}
+.sc-num{font-size:1.38rem;font-weight:800;color:var(--blue);letter-spacing:-.01em}
+.sc-shares-unit{font-size:.78rem;color:var(--text-3)}
+.sc-note{margin-top:8px;font-size:.73rem;color:var(--text-3);line-height:1.5}
+
+/* ===== 确认与提交 ===== */
+.confirm-wrap{padding:18px 24px}
+.cf-item{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:var(--r);border:1.5px solid var(--border-lt);background:var(--gray-lt);cursor:pointer;transition:all .15s;margin-bottom:12px}
+.cf-item:hover{background:var(--blue-lt);border-color:#bfdbfe}
+.cf-item.checked{background:var(--green-lt);border-color:#6ee7b7}
+.cf-box{width:17px;height:17px;border-radius:4px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;background:var(--surface);font-size:.65rem;color:transparent;transition:all .15s}
+.cf-item.checked .cf-box{background:var(--green);border-color:var(--green);color:#fff}
+.cf-text{font-size:.83rem;color:var(--text-2);line-height:1.5}
+.cf-item.checked .cf-text{color:var(--text)}
+.submit-btn{width:100%;padding:12px 20px;border:none;border-radius:var(--r);background:var(--blue);color:#fff;font-size:.95rem;font-weight:700;transition:all .15s;box-shadow:0 2px 8px rgba(37,99,199,.28)}
+.submit-btn:hover:not(:disabled){background:#1d53b0;box-shadow:0 4px 12px rgba(37,99,199,.35);transform:translateY(-1px)}
+.submit-btn:disabled{background:#c8cdd8;cursor:not-allowed;box-shadow:none;color:#90949e}
+.submit-locked{width:100%;padding:12px 20px;border:1.5px solid var(--border);border-radius:var(--r);background:var(--gray-lt);color:var(--text-3);font-size:.88rem;font-weight:600;cursor:not-allowed;display:flex;align-items:center;justify-content:center;gap:8px}
+
+/* ===== 提交结果 ===== */
+.result-wrap{padding:20px 24px}
+.result-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.result-icon-wrap{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.ri-cash{background:var(--amber-lt)} .ri-stock{background:var(--blue-lt)}
+.r-title{font-size:1rem;font-weight:700;color:var(--text)}
+.r-sub{font-size:.78rem;color:var(--text-3);margin-top:1px}
+.result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:440px){.result-grid{grid-template-columns:1fr 1fr}}
+.rg-label{font-size:.7rem;color:var(--text-3);margin-bottom:2px}
+.rg-value{font-size:.86rem;font-weight:600;color:var(--text)}
+.result-tip{margin-top:12px;padding:9px 12px;background:var(--green-lt);border-left:2px solid var(--green);border-radius:0 var(--r-sm) var(--r-sm) 0;font-size:.76rem;color:var(--green);line-height:1.5}
+.result-tip.locked{background:var(--gray-lt);border-left-color:var(--border);color:var(--text-3)}
+
+/* ===== 工具 ===== */
+.hidden{display:none!important}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.section-anim{animation:fadeUp .3s both}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+
+<!-- ===== 演示切换栏 ===== -->
+<div id="demo-bar">
+  <span class="demo-label">演示场景</span>
+  <div class="demo-tabs">
+    <button class="demo-tab active" data-scene="standard">标准员工</button>
+    <button class="demo-tab" data-scene="overseas">海外员工（巴西）</button>
+    <button class="demo-tab" data-scene="noncompete">特殊状态员工</button>
+    <button class="demo-tab" data-scene="paymix">paymix 员工</button>
+  </div>
+  <a href="admin.html" class="demo-back">← 返回管理后台</a>
+</div>
+
+<div id="app"></div>
+
+<script>
+const DEFAULT_STOCK_HKD = 52.8;
+const HKD_CNY = 0.92;
+const CNY_BRL = 0.77;
+
+// 员工数据（empId 用于和 admin 联动）
+const SCENES = {
+  standard: {
+    type:'standard', status:'pending', choice:null, stockAllowed:true,
+    empId:'KS20180342',
+    emp:{name:'张明远',username:'zhangmingyuan',org:'商业化产品中心 · 效率工具团队',perf:'S',months:3,base:50000,currency:'CNY',currencySymbol:'¥'},
+    note:null, submitAt:null, modifyAt:null,
+  },
+  overseas: {
+    type:'overseas', status:'pending', choice:null, stockAllowed:true,
+    empId:'KS20200815',
+    emp:{name:'Wang Fang',username:'wangfang',org:'International Growth · Southeast Asia',perf:'A',months:1,base:85000,currency:'BRL',currencySymbol:'R$'},
+    note:'金额以巴西雷亚尔（BRL）展示，实际发放以当地薪资周期和公司执行安排为准。',
+    submitAt:null, modifyAt:null,
+  },
+  noncompete: {
+    type:'noncompete', status:'pending', choice:null, stockAllowed:false,
+    empId:'KS20170601',
+    emp:{name:'李佳欣',username:'lijiaxin',org:'技术中台 · 基础架构',perf:'S',months:3,base:65000,currency:'CNY',currencySymbol:'¥'},
+    note:'您当前处于特殊状态，本次特别奖励仅支持现金发放，不可选择股票归属。如有疑问请联系 HRBP。',
+    submitAt:null, modifyAt:null,
+  },
+  paymix: {
+    type:'paymix', status:'pending', choice:null, stockAllowed:true,
+    empId:'KS20190723',
+    emp:{name:'赵晓东',username:'zhaoxiaodong',org:'短视频业务 · 创作者生态',perf:'A',months:1,base:48000,currency:'CNY',currencySymbol:'¥'},
+    note:'您的奖励基数已按 paymix 规则进行特殊处理，当前展示基数综合了 2025年12月31日月薪及 2026年调薪比例。',
+    submitAt:null, modifyAt:null,
+  },
+};
+
+let curScene='standard', curChoice=null, cfChecked=false, stockPrice=DEFAULT_STOCK_HKD;
+function getS(){return SCENES[curScene]}
+
+function cashAmt(s){
+  const raw=s.emp.base*s.emp.months;
+  return s.emp.currency==='BRL' ? +(raw*CNY_BRL).toFixed(0) : raw;
+}
+function baseBRL(s){ return +(s.emp.base*CNY_BRL).toFixed(0); }
+function sharesCalc(s,price){
+  const cashCNY=s.emp.base*s.emp.months;
+  if(!price||price<=0)return 0;
+  return +(cashCNY/(price*HKD_CNY)).toFixed(2);
+}
+function fmt(n){return n.toLocaleString('zh-CN',{minimumFractionDigits:0,maximumFractionDigits:0})}
+function fmtF(n){return n.toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function nowStr(){return new Date().toLocaleString('zh-CN',{hour12:false}).replace(/\//g,'-')}
+
+/* ---------- 渲染头部 ---------- */
+function renderHeader(s){
+  const st={
+    pending:  {cls:'sp-pending', icon:'○',txt:'待选择'},
+    submitted:{cls:'sp-done',    icon:'●',txt:'已提交，截止前可修改'},
+    locked:   {cls:'sp-locked',  icon:'■',txt:'已锁定，不可修改'},
+  }[s.status]||{cls:'sp-pending',icon:'○',txt:'待选择'};
+  const cashOnly=!s.stockAllowed?`<span class="status-pill sp-cashonly">仅支持现金</span>`:'';
+  return `
+  <div class="card section-anim">
+    <div class="page-header">
+      <div class="ph-row1">
+        <div class="ph-title">2025年度绩效特别奖励选择</div>
+        <a href="#" class="ph-policy-link">查看政策文档 ↗</a>
+      </div>
+      <div class="ph-meta">
+        <div class="ph-meta-item">选择截止：<span class="ph-meta-hl urgent">2026年7月8日 23:59</span></div>
+        <div class="ph-meta-item">选择窗口：<span class="ph-meta-hl">7月1日 — 7月8日</span></div>
+        <span class="status-pill ${st.cls}">${st.icon} ${st.txt}</span>
+        ${cashOnly}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------- 渲染员工信息卡 ---------- */
+function renderEmpInfo(s){
+  const e=s.emp;
+  const perfCls=e.perf==='S'?'perf-S':'perf-A';
+  const cash=cashAmt(s);
+  const sym=e.currencySymbol;
+
+  // 特别奖励基数展示：BRL 员工用 BRL
+  const baseLbl = e.currency==='BRL' ? '特别奖励基数 (BRL)' : '特别奖励基数';
+  const baseVal = e.currency==='BRL'
+    ? `${sym} ${fmt(baseBRL(s))}`
+    : `¥ ${fmt(e.base)}`;
+
+  const amtLbl = e.currency==='BRL' ? '奖励金额 (BRL)' : '奖励金额';
+  const amtVal = e.currency==='BRL'
+    ? `${sym} ${fmt(cash)}`
+    : `¥ ${fmt(cash)}`;
+
+  const noteHtml=s.note
+    ? `<div class="emp-alert${s.type==='noncompete'?' warn':''}">${s.note}</div>` : '';
+
+  return `
+  <div class="card section-anim">
+    <div class="emp-card">
+      <div class="emp-fields-top">
+        <div><div class="ef-label">姓名</div><div class="ef-value">${e.name}</div></div>
+        <div><div class="ef-label">用户名</div><div class="ef-value">${e.username}</div></div>
+        <div><div class="ef-label">所属组织</div><div class="ef-value">${e.org}</div></div>
+        <div><div class="ef-label">2025年度绩效等级</div><div class="ef-value"><span class="perf-badge ${perfCls}">${e.perf}</span></div></div>
+      </div>
+      <div class="bonus-row">
+        <div class="bonus-cell">
+          <div class="bc-label">奖励月数</div>
+          <div class="bc-value">${e.months}<span class="unit">个月</span></div>
+        </div>
+        <div class="bonus-divider"></div>
+        <div class="bonus-cell">
+          <div class="bc-label">${baseLbl}</div>
+          <div class="bc-value" style="font-size:1.05rem">${baseVal}</div>
+        </div>
+        <div class="bonus-divider"></div>
+        <div class="bonus-cell">
+          <div class="bc-label">${amtLbl}</div>
+          <div class="bc-value">${amtVal}</div>
+        </div>
+      </div>
+      ${e.currency==='BRL'?`<div class="bonus-note">参考汇率：1 CNY ≈ ${CNY_BRL} BRL，实际金额以公司正式执行口径为准。</div>`:''}
+      ${noteHtml}
+    </div>
+  </div>`;
+}
+
+/* ---------- 渲染选择区 ---------- */
+function renderChoice(s){
+  const isLocked=s.status==='locked';
+  const cash=cashAmt(s);
+  const sym=s.emp.currencySymbol;
+  const cashStr=s.emp.currency==='BRL'?`${sym} ${fmt(cash)}`:`¥ ${fmt(cash)}`;
+  const shares=fmtF(sharesCalc(s,DEFAULT_STOCK_HKD));
+  const lockBadge=isLocked?`<span class="status-pill sp-locked" style="margin-bottom:10px">锁定，不可修改</span><br>`:'';
+
+  // 现金说明文案（海外/国内区分）
+  const cashItems = s.type==='overseas' ? [
+    '将于7月31日之后的最近一个发薪周期发放',
+    '合并当月工资计税（以当地税务政策为准）',
+  ] : [
+    '随2026年7月底工资发放',
+    '合并当月工资计税',
+  ];
+
+  const stockCard = s.stockAllowed ? `
+    <div class="ch-card${curChoice==='stock'?' selected':''}${isLocked?' locked-card':''}" data-choice="stock">
+      <div class="ch-radio"></div>
+      <div class="ch-name">股票归属</div>
+      <ul class="ch-desc">
+        <li>随2026年7月公司窗口授予，授予后立即归属（最早卖出日期为7月26日，敏感雇员除外）</li>
+        <li>按7月1日—7月15日收盘均价和6月30日汇率计算股数</li>
+        <li>合并当年股权激励收入（如有）单独计税</li>
+      </ul>
+      <div class="ch-links">
+        <a href="#" class="ch-link">查看文档 ↗</a>
+        <a href="#" class="ch-link">咨询 ESOP 小助手 ↗</a>
+      </div>
+      <div class="ch-amount">
+        <div class="ch-amount-lbl">默认参考股价估算股数</div>
+        <div><span class="ch-amount-val">${shares}</span><span class="ch-amount-unit">股（参考价 ${DEFAULT_STOCK_HKD} HKD）</span></div>
+      </div>
+    </div>` : `
+    <div class="ch-card disabled" data-choice="stock">
+      <div class="ch-radio"></div>
+      <div class="ch-name">股票归属</div>
+      <ul class="ch-desc">
+        <li>随2026年7月公司窗口授予，授予后立即归属</li>
+        <li>按7月1日—7月15日收盘均价和6月30日汇率计算股数</li>
+      </ul>
+      <div class="ch-amount">
+        <div class="ch-amount-lbl">当前不可选择</div>
+        <div><span class="ch-amount-val">—</span></div>
+      </div>
+      <div class="ch-lock-overlay">
+        <div class="ch-lock-ico">🔒</div>
+        <div class="ch-lock-txt">当前仅支持现金发放</div>
+      </div>
+    </div>`;
+
+  const calcHtml = s.stockAllowed && !isLocked ? `
+    <div class="stock-calc" id="stock-calc">
+      <div class="sc-title">股数试算（选填，仅供参考）</div>
+      <div class="sc-row">
+        <div class="sc-field">
+          <div class="sc-lbl">模拟股价</div>
+          <div class="sc-input-wrap">
+            <input class="sc-input" type="number" id="price-input" value="${DEFAULT_STOCK_HKD}" min="1" max="999" step="0.1"/>
+            <span class="sc-unit">HKD</span>
+          </div>
+        </div>
+        <div class="sc-sep">→</div>
+        <div class="sc-field">
+          <div class="sc-lbl">预估股数</div>
+          <div class="sc-result">
+            <span class="sc-num" id="calc-shares">${shares}</span>
+            <span class="sc-shares-unit">股</span>
+          </div>
+        </div>
+      </div>
+      <div class="sc-note">该试算仅供个人参考，不作为最终授予依据。</div>
+    </div>` : '';
+
+  return `
+  <div class="card section-anim">
+    <div class="choice-wrap">
+      <div class="choice-title">选择发放方式（二选一）</div>
+      ${lockBadge}
+      <div class="choice-cards">
+        <div class="ch-card${curChoice==='cash'?' selected':''}${isLocked?' locked-card':''}" data-choice="cash">
+          <div class="ch-radio"></div>
+          <div class="ch-name">现金发放</div>
+          <ul class="ch-desc">
+            ${cashItems.map(t=>`<li>${t}</li>`).join('')}
+          </ul>
+          <div class="ch-links">
+            <a href="#" class="ch-link">查看文档 ↗</a>
+            <a href="#" class="ch-link">咨询薪酬小助手 ↗</a>
+          </div>
+          <div class="ch-amount">
+            <div class="ch-amount-lbl">预估发放金额</div>
+            <div><span class="ch-amount-val">${cashStr}</span></div>
+          </div>
+        </div>
+        ${stockCard}
+      </div>
+      ${calcHtml}
+    </div>
+  </div>`;
+}
+
+/* ---------- 确认与提交 ---------- */
+function renderConfirm(s){
+  if(s.status==='locked'){
+    return `<div class="card section-anim"><div class="confirm-wrap"><div class="submit-locked">🔒 选择窗口已关闭，无法修改</div></div></div>`;
+  }
+  const isSubmitted=s.status==='submitted';
+  const checked=isSubmitted||cfChecked;
+  return `
+  <div class="card section-anim">
+    <div class="confirm-wrap">
+      <div class="cf-item${checked?' checked':''}" id="cf-item">
+        <div class="cf-box" id="cf-box">${checked?'✓':''}</div>
+        <div class="cf-text">我已阅读并理解本次特别奖励的相关规则，确认以上选择为本人真实意愿，知悉截止前可修改选择，截止后将不可变更。</div>
+      </div>
+      ${isSubmitted
+        ?`<button class="submit-btn" id="submit-btn">修改选择</button>`
+        :`<button class="submit-btn" id="submit-btn" ${(!cfChecked||!curChoice)?'disabled':''}>确认提交选择</button>`}
+    </div>
+  </div>`;
+}
+
+/* ---------- 提交结果 ---------- */
+function renderResult(s){
+  if(s.status!=='submitted'&&s.status!=='locked')return '';
+  const isCash=s.choice==='cash';
+  const isLocked=s.status==='locked';
+  const choiceTxt=isCash?'现金发放':'股票归属';
+  const deliverTxt=isCash
+    ?(s.type==='overseas'?'7月31日后最近发薪周期':'2026年7月底工资发放时')
+    :'2026年7月公司窗口';
+  const taxTxt=isCash?'合并当月工资计税':'合并当年股权激励收入单独计税';
+  return `
+  <div class="card section-anim" id="result-card">
+    <div class="result-wrap">
+      <div class="result-header">
+        <div class="result-icon-wrap ${isCash?'ri-cash':'ri-stock'}">${isCash?'💵':'📊'}</div>
+        <div>
+          <div class="r-title">您选择：${choiceTxt}</div>
+          <div class="r-sub">提交于 ${s.submitAt}${s.modifyAt?' · 最近修改 '+s.modifyAt:''}</div>
+        </div>
+      </div>
+      <div class="result-grid">
+        <div><div class="rg-label">发放方式</div><div class="rg-value">${choiceTxt}</div></div>
+        <div><div class="rg-label">预计执行时间</div><div class="rg-value">${deliverTxt}</div></div>
+        <div><div class="rg-label">计税方式</div><div class="rg-value">${taxTxt}</div></div>
+      </div>
+      <div class="result-tip${isLocked?' locked':''}">
+        ${isLocked
+          ?'🔒 选择窗口已于2026年7月8日23:59关闭，您的选择已最终确认，不可修改。'
+          :'✓ 已成功提交。截止时间前可重新选择并再次提交，以最后一次提交结果为准。'}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------- 主渲染 ---------- */
+function renderAll(){
+  const s=getS();
+  const parts=[renderHeader(s),renderEmpInfo(s),renderChoice(s),renderConfirm(s),renderResult(s)].filter(Boolean);
+  const app=document.getElementById('app');
+  app.innerHTML='';
+  parts.forEach((html,i)=>{
+    const div=document.createElement('div');
+    div.innerHTML=html;
+    div.firstElementChild.style.animationDelay=i*40+'ms';
+    app.appendChild(div.firstElementChild);
+  });
+  bindEvents(s);
+}
+
+/* ---------- 事件 ---------- */
+function bindEvents(s){
+  const isLocked=s.status==='locked';
+  const isSubmitted=s.status==='submitted';
+  // 选择卡片
+  if(!isLocked){
+    document.querySelectorAll('.ch-card:not(.disabled)').forEach(card=>{
+      card.addEventListener('click',()=>{
+        const c=card.dataset.choice;
+        curChoice=(curChoice===c)?null:c;
+        updateChoiceUI(); updateSubmitBtn();
+      });
+    });
+  }
+  // 确认勾选
+  const cfItem=document.getElementById('cf-item');
+  if(cfItem&&!isSubmitted&&!isLocked){
+    cfItem.addEventListener('click',()=>{
+      cfChecked=!cfChecked;
+      cfItem.classList.toggle('checked',cfChecked);
+      const box=document.getElementById('cf-box');
+      if(box)box.textContent=cfChecked?'✓':'';
+      updateSubmitBtn();
+    });
+  }
+  // 提交按钮
+  const btn=document.getElementById('submit-btn');
+  if(btn){
+    btn.addEventListener('click',()=>{
+      if(isSubmitted){
+        SCENES[curScene]={...SCENES[curScene],status:'pending',choice:curChoice};
+        cfChecked=false; renderAll();
+      } else { doSubmit(s); }
+    });
+  }
+  // 股价输入
+  const priceInput=document.getElementById('price-input');
+  if(priceInput){
+    priceInput.addEventListener('input',()=>{
+      const v=parseFloat(priceInput.value);
+      if(!isNaN(v)&&v>0){
+        stockPrice=v;
+        const el=document.getElementById('calc-shares');
+        if(el)el.textContent=fmtF(sharesCalc(s,v));
+      }
+    });
+  }
+}
+
+function updateChoiceUI(){
+  document.querySelectorAll('.ch-card').forEach(card=>{
+    card.classList.toggle('selected',card.dataset.choice===curChoice);
+  });
+}
+function updateSubmitBtn(){
+  const btn=document.getElementById('submit-btn');
+  if(!btn)return;
+  const s=getS();
+  if(s.status==='submitted'){btn.disabled=false;return}
+  btn.disabled=!(cfChecked&&curChoice);
+  btn.textContent=curChoice?`确认提交：${curChoice==='cash'?'现金发放':'股票归属'}`:'确认提交选择';
+}
+function doSubmit(s){
+  if(!curChoice){alert('请先选择发放方式');return}
+  if(!cfChecked){alert('请先勾选确认须知');return}
+  const ts=nowStr();
+  const prev=SCENES[curScene].submitAt;
+  SCENES[curScene]={...SCENES[curScene],status:'submitted',choice:curChoice,submitAt:prev||ts,modifyAt:prev?ts:null};
+  renderAll();
+  setTimeout(()=>{
+    const el=document.getElementById('result-card');
+    if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+  },200);
+}
+
+/* ---------- 场景切换 ---------- */
+const SCENE_RESET={
+  standard:  {status:'pending',choice:null,submitAt:null,modifyAt:null},
+  overseas:  {status:'pending',choice:null,submitAt:null,modifyAt:null},
+  noncompete:{status:'pending',choice:null,submitAt:null,modifyAt:null},
+  paymix:    {status:'pending',choice:null,submitAt:null,modifyAt:null},
+};
+document.querySelectorAll('.demo-tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const sc=btn.dataset.scene;
+    SCENES[sc]={...SCENES[sc],...SCENE_RESET[sc]};
+    curScene=sc; curChoice=null; cfChecked=false; stockPrice=DEFAULT_STOCK_HKD;
+    document.querySelectorAll('.demo-tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    renderAll();
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+});
+
+renderAll();
+</script>
+</body>
+</html>
