@@ -99,7 +99,11 @@ a{text-decoration:none}
 .bc-hint{margin-top:4px;font-size:.72rem;color:var(--text-3);line-height:1.4}
 .bc-hint.bc-gray{cursor:help;text-decoration:underline dotted;text-underline-offset:2px}
 .bonus-note{margin-top:10px;font-size:.75rem;color:var(--text-3);line-height:1.5}
-/* 选择状态行 */
+/* 顶部状态行 */
+.ph-status-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:.8rem;color:var(--text-2)}
+.ph-status-label{color:var(--text-3)}
+.ph-result-item{display:flex;align-items:center;gap:5px}
+/* 选择状态行（保留供其他地方使用） */
 .choice-status-row{margin-top:10px;display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--text-2)}
 .cs-label{color:var(--text-3)}
 /* paymix 薪酬构成 */
@@ -118,7 +122,8 @@ a{text-decoration:none}
 .choice-title{font-size:.82rem;font-weight:600;color:var(--text-3);margin-bottom:12px;letter-spacing:.03em;text-transform:uppercase}
 .choice-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:440px){.choice-cards{grid-template-columns:1fr}}
-.ch-card{border:1.5px solid var(--border);border-radius:var(--r);padding:16px;cursor:pointer;position:relative;transition:border-color .15s,background .15s,box-shadow .15s;background:var(--surface);user-select:none}
+/* 选择卡片置底 */
+.ch-card{border:1.5px solid var(--border);border-radius:var(--r);padding:16px;cursor:pointer;position:relative;transition:border-color .15s,background .15s,box-shadow .15s;background:var(--surface);user-select:none;display:flex;flex-direction:column}
 .ch-card:not(.disabled):not(.locked-card):hover{border-color:var(--blue-mid);box-shadow:0 2px 8px rgba(37,99,199,.1)}
 .ch-card.selected{border-color:var(--blue);border-left-width:3px;background:var(--blue-lt)}
 .ch-card.disabled{opacity:.45;cursor:not-allowed;background:var(--gray-lt)}
@@ -128,7 +133,7 @@ a{text-decoration:none}
 .ch-card.selected .ch-radio{border-color:var(--blue)}
 .ch-card.selected .ch-radio::after{opacity:1}
 .ch-name{font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:7px}
-.ch-desc{list-style:none;display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.ch-desc{list-style:none;display:flex;flex-direction:column;gap:4px;margin-bottom:12px;flex:1}
 .ch-desc li{font-size:.78rem;color:var(--text-2);display:flex;align-items:flex-start;gap:5px}
 .ch-desc li::before{content:'—';color:var(--text-3);flex-shrink:0}
 /* 链接行（查看文档 / 咨询小助手） */
@@ -275,12 +280,18 @@ const SCENES = {
     submitAt:'2026-07-03 09:00:00', modifyAt:null,
   },
   // ⑧ paymix员工 - 待选择
+  // 规则：特别奖励基数以 paymix 切换前的2025/12/31月薪为基础（保护员工不因 paymix 切换而降低）
   paymix: {
     type:'paymix', status:'pending', choice:null, stockAllowed:true,
     empId:'19723',
-    emp:{name:'赵晓东',username:'zhaoxiaodong',org:'短视频业务 · 创作者生态',perf:'A',perfScore:4.1,months:1,base:48000,base2025:52000,currency:'CNY',currencySymbol:'¥',
-      paymixBase2025:52000,paymixComp2025:'12+4季度',paymixCurrentComp:'12+6季度'},
-    note:'您的奖励基数已按 paymix 规则处理。',
+    emp:{name:'赵晓东',username:'zhaoxiaodong',org:'短视频业务 · 创作者生态',perf:'A',perfScore:4.1,months:1,
+      base:52000,       // 特别奖励基数 = paymixBase2025（已按 paymix 保护规则处理）
+      base2025:52000,   // 2025/12/31 月薪
+      currency:'CNY',currencySymbol:'¥',
+      paymixBase2025:52000,paymixComp2025:'12+4季度',paymixCurrentComp:'12+6季度',
+      paymixAdjRatio:null,  // 本案无额外调薪，基数=25/12/31月薪
+    },
+    note:'您的奖励基数已按 paymix 保护规则处理，以 2025年12月月薪为计算基准。',
     submitAt:null, modifyAt:null,
   },
 };
@@ -303,8 +314,19 @@ function fmt(n){return n.toLocaleString('zh-CN',{minimumFractionDigits:0,maximum
 function fmtF(n){return n.toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function nowStr(){return new Date().toLocaleString('zh-CN',{hour12:false}).replace(/\//g,'-')}
 
-/* ---------- 渲染头部（不展示标题状态badge，状态放员工信息卡） ---------- */
+/* ---------- 渲染头部（状态/结果前置到顶部卡片） ---------- */
 function renderHeader(s){
+  // 选择状态 + 结果
+  let statusPill, resultHtml='';
+  if(s.status==='locked'){
+    statusPill=`<span class="status-pill sp-locked">■ 已锁定</span>`;
+    if(s.choice) resultHtml=`<span class="ph-result-item"><span class="ph-status-label">选择结果：</span><strong>${s.choice==='cash'?'现金发放':'股票归属'}</strong></span>`;
+  } else if(s.status==='submitted'){
+    statusPill=`<span class="status-pill sp-done">● 已提交</span>`;
+    if(s.choice) resultHtml=`<span class="ph-result-item"><span class="ph-status-label">选择结果：</span><strong>${s.choice==='cash'?'现金发放':'股票归属'}</strong></span>`;
+  } else {
+    statusPill=`<span class="status-pill sp-pending">○ 待选择</span>`;
+  }
   return `
   <div class="card section-anim">
     <div class="page-header">
@@ -315,6 +337,10 @@ function renderHeader(s){
       <div class="ph-meta">
         <div class="ph-meta-item">选择截止：<span class="ph-meta-hl urgent">2026年7月8日 23:59</span></div>
         <div class="ph-meta-item">选择窗口：<span class="ph-meta-hl">7月1日 — 7月8日</span></div>
+      </div>
+      <div class="ph-status-row">
+        <span class="ph-status-label">选择状态：</span>${statusPill}
+        ${resultHtml}
       </div>
     </div>
   </div>`;
@@ -445,8 +471,7 @@ function renderChoice(s){
       </div>
       <div class="ch-amount">
         <div class="ch-amount-lbl">预估股数（参考）</div>
-        <div><span class="ch-amount-val">${shares}</span><span class="ch-amount-unit">股</span></div>
-        <div style="font-size:.7rem;color:var(--text-3);margin-top:2px">参考价 ${DEFAULT_STOCK_HKD} HKD</div>
+        <div><span class="ch-amount-val">${shares}</span><span class="ch-amount-unit">股</span><span style="font-size:.7rem;color:var(--text-3);margin-left:6px">参考价 ${DEFAULT_STOCK_HKD} HKD</span></div>
       </div>
     </div>` : `
     <div class="ch-card disabled" data-choice="stock">
@@ -507,7 +532,7 @@ function renderChoice(s){
             <a href="#" class="ch-link">咨询薪酬小助手 ↗</a>
           </div>
           <div class="ch-amount">
-            <div class="ch-amount-lbl">预估发放金额</div>
+            <div class="ch-amount-lbl">发放金额</div>
             <div><span class="ch-amount-val">${cashStr}</span></div>
           </div>
         </div>

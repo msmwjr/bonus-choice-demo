@@ -362,9 +362,11 @@ const PRE_LIST = [
   // ⑧ 特殊状态员工 - 已锁定 现金（noncompete，不允许股票）
   {empId:'17601',username:'lijiaxin',name:'李佳欣',org:'技术中台·基础架构',bu:'研发线',hrbp:'赵丽娟',perf:'S',perfScore:4.6,base2025:58000,payComp2025:'12+4季度',adjustRatio:'12.1%',currentBase:65000,currentPayComp:'12+4季度',bonusBase:65000,months:3,type:'noncompete',stockAllowed:false,status:'locked',choice:'cash',submitAt:'2026-07-02 14:55:30',modifyAt:'2026-07-04 09:18:05',bonusLog:[]},
   // ⑨ paymix员工 - 待选择
-  {empId:'19723',username:'zhaoxiaodong',name:'赵晓东',org:'短视频业务·创作者生态',bu:'主站线',hrbp:'林晓彤',perf:'A',perfScore:4.1,base2025:52000,payComp2025:'12+4季度+2年度',adjustRatio:'-7.7%',currentBase:48000,currentPayComp:'12+4季度',bonusBase:48000,months:1,type:'paymix',paymixBase2025:52000,status:'pending',choice:null,submitAt:null,modifyAt:null,bonusLog:[]},
+  // 注：paymix切换后月薪为48000，但奖励基数不降低，以base2025=52000为基础；本案无额外调薪
+  {empId:'19723',username:'zhaoxiaodong',name:'赵晓东',org:'短视频业务·创作者生态',bu:'主站线',hrbp:'林晓彤',perf:'A',perfScore:4.1,base2025:52000,payComp2025:'12+4季度+2年度',adjustRatio:'—',currentBase:48000,currentPayComp:'12+4季度',bonusBase:52000,months:1,type:'paymix',paymixBase2025:52000,status:'pending',choice:null,submitAt:null,modifyAt:null,bonusLog:[]},
   // ⑩ paymix员工 - 已提交 现金
-  {empId:'53017',username:'sunzihan',name:'孙子涵',org:'电商事业部·增长运营',bu:'电商事业部',hrbp:'张婷',perf:'A',perfScore:4.4,base2025:44000,payComp2025:'12+18月度',adjustRatio:'-5.0%',currentBase:41800,currentPayComp:'12+4季度',bonusBase:44000,months:1,type:'paymix',paymixBase2025:44000,status:'submitted',choice:'cash',submitAt:'2026-07-05 09:10:00',modifyAt:null,bonusLog:[]},
+  // 注：paymix切换后又发生2026年实际调薪10%，奖励基数=44000×110%=48400
+  {empId:'53017',username:'sunzihan',name:'孙子涵',org:'电商事业部·增长运营',bu:'电商事业部',hrbp:'张婷',perf:'A',perfScore:4.4,base2025:44000,payComp2025:'12+18月度',adjustRatio:'10%',currentBase:41800,currentPayComp:'12+4季度',bonusBase:48400,months:1,type:'paymix',paymixBase2025:44000,status:'submitted',choice:'cash',submitAt:'2026-07-05 09:10:00',modifyAt:null,bonusLog:[]},
 ];
 
 let empList = [...PRE_LIST];
