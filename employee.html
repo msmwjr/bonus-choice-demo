@@ -202,11 +202,14 @@ a{text-decoration:none}
 <div id="demo-bar">
   <span class="demo-label">演示场景</span>
   <div class="demo-tabs">
-    <button class="demo-tab active" data-scene="standard">标准员工</button>
-    <button class="demo-tab" data-scene="overseas">海外员工（巴西）</button>
+    <button class="demo-tab active" data-scene="standard">标准-待选择</button>
+    <button class="demo-tab" data-scene="std-cash">标准-已提交现金</button>
+    <button class="demo-tab" data-scene="std-stock">标准-已提交股票</button>
+    <button class="demo-tab" data-scene="locked-cash">锁定-现金</button>
+    <button class="demo-tab" data-scene="locked-stock">锁定-股票</button>
+    <button class="demo-tab" data-scene="overseas">海外员工</button>
     <button class="demo-tab" data-scene="noncompete">特殊状态员工</button>
     <button class="demo-tab" data-scene="paymix">paymix 员工</button>
-    <button class="demo-tab" data-scene="locked">截止后锁定</button>
   </div>
   <a href="admin.html" class="demo-back">← 返回管理后台</a>
 </div>
@@ -220,19 +223,50 @@ const CNY_BRL = 0.77;
 
 // 员工数据（empId 用于和 admin 联动）
 const SCENES = {
+  // ① 标准员工 - 待选择
   standard: {
     type:'standard', status:'pending', choice:null, stockAllowed:true,
     empId:'18342',
-    emp:{name:'张明远',username:'zhangmingyuan',org:'商业化产品中心 · 效率工具团队',perf:'S',perfScore:4.8,months:3,base:50000,base2025:40000,currency:'CNY',currencySymbol:'¥'},
+    emp:{name:'张明远',username:'zhangmingyuan',org:'商业化产品中心 · 效率工具团队',perf:'S',perfScore:4.8,months:3,base:50000,base2025:45000,currency:'CNY',currencySymbol:'¥'},
     note:null, submitAt:null, modifyAt:null,
   },
+  // ② 标准员工 - 已提交 现金
+  'std-cash': {
+    type:'standard', status:'submitted', choice:'cash', stockAllowed:true,
+    empId:'31205',
+    emp:{name:'林昊',username:'linhao',org:'研发线 · 系统平台',perf:'A',perfScore:4.3,months:1,base:42000,base2025:38000,currency:'CNY',currencySymbol:'¥'},
+    note:null, submitAt:'2026-07-02 09:45:00', modifyAt:null,
+  },
+  // ③ 标准员工 - 已提交 股票
+  'std-stock': {
+    type:'standard', status:'submitted', choice:'stock', stockAllowed:true,
+    empId:'44580',
+    emp:{name:'陈若曦',username:'chenruoxi',org:'可灵AI事业部 · 产品设计',perf:'S',perfScore:4.7,months:3,base:65000,base2025:60000,currency:'CNY',currencySymbol:'¥'},
+    note:null, submitAt:'2026-07-04 14:20:00', modifyAt:'2026-07-05 10:08:00',
+  },
+  // ④ 截止后锁定 - 现金
+  'locked-cash': {
+    type:'standard', status:'locked', choice:'cash', stockAllowed:true,
+    empId:'27814',
+    emp:{name:'王宇辉',username:'wangyuhui',org:'主站线 · 创作者运营',perf:'A',perfScore:4.0,months:1,base:37000,base2025:35000,currency:'CNY',currencySymbol:'¥'},
+    note:null, submitAt:'2026-07-06 16:00:00', modifyAt:null,
+  },
+  // ⑤ 截止后锁定 - 股票
+  'locked-stock': {
+    type:'standard', status:'locked', choice:'stock', stockAllowed:true,
+    empId:'62052',
+    emp:{name:'周思远',username:'zhousiyuan',org:'可灵AI事业部 · 算法团队',perf:'S',perfScore:4.9,months:3,base:60000,base2025:55000,currency:'CNY',currencySymbol:'¥'},
+    note:null, submitAt:'2026-07-05 16:30:00', modifyAt:null,
+  },
+  // ⑥ 海外员工 - 已提交 股票
   overseas: {
-    type:'overseas', status:'pending', choice:null, stockAllowed:true,
+    type:'overseas', status:'submitted', choice:'stock', stockAllowed:true,
     empId:'20815',
     emp:{name:'Wang Fang',username:'wangfang',org:'International Growth · Southeast Asia',perf:'A',perfScore:4.2,months:1,base:85000,base2025:85000,currency:'BRL',currencySymbol:'R$'},
     note:'金额以巴西雷亚尔（BRL）展示，实际发放以当地薪资周期和公司执行安排为准。',
-    submitAt:null, modifyAt:null,
+    submitAt:'2026-07-03 10:22:15', modifyAt:null,
   },
+  // ⑦ 特殊状态员工 - 已锁定 现金（noncompete）
   noncompete: {
     type:'noncompete', status:'locked', choice:'cash', stockAllowed:false,
     empId:'17601',
@@ -240,20 +274,14 @@ const SCENES = {
     note:'您当前处于特殊状态，本次特别奖励仅支持现金发放，不可选择股票归属。如有疑问请联系 HRBP。',
     submitAt:'2026-07-03 09:00:00', modifyAt:null,
   },
+  // ⑧ paymix员工 - 待选择
   paymix: {
     type:'paymix', status:'pending', choice:null, stockAllowed:true,
     empId:'19723',
     emp:{name:'赵晓东',username:'zhaoxiaodong',org:'短视频业务 · 创作者生态',perf:'A',perfScore:4.1,months:1,base:48000,base2025:52000,currency:'CNY',currencySymbol:'¥',
-      // paymix 薪酬构成数据（不含当前月薪，不展示调薪比例）
       paymixBase2025:52000,paymixComp2025:'12+4季度',paymixCurrentComp:'12+6季度'},
     note:'您的奖励基数已按 paymix 规则处理。',
     submitAt:null, modifyAt:null,
-  },
-  locked: {
-    type:'standard', status:'locked', choice:'stock', stockAllowed:true,
-    empId:'62052',
-    emp:{name:'周思远',username:'zhousiyuan',org:'可灵AI事业部 · 算法团队',perf:'S',perfScore:4.9,months:3,base:60000,base2025:55000,currency:'CNY',currencySymbol:'¥'},
-    note:null, submitAt:'2026-07-05 16:30:00', modifyAt:null,
   },
 };
 
@@ -261,7 +289,6 @@ const SCENES = {
 let curScene='standard', curChoice=SCENES['standard'].choice, cfChecked=false, stockPrice=DEFAULT_STOCK_HKD;
 // URL参数驱动：从后台点击员工姓名链接进入时，按empId加载对应数据
 function getS(){return SCENES[curScene]}
-
 function cashAmt(s){
   const raw=s.emp.base*s.emp.months;
   return s.emp.currency==='BRL' ? +(raw*CNY_BRL).toFixed(0) : raw;
@@ -309,7 +336,7 @@ function renderEmpInfo(s){
   // 基数灰字：仅在最终基数 > 25年12/31月薪时显示，tooltip解释
   const base2025 = e.base2025 || e.base;
   const baseGrayHtml = (e.currency!=='BRL' && e.base > base2025)
-    ? `<div class="bc-hint bc-gray" title="2025年12月31日月薪（调薪前）">¥ ${fmt(base2025)}</div>` : '';
+    ? `<div class="bc-hint bc-gray" title="2025年12月月基薪">¥ ${fmt(base2025)}</div>` : '';
 
   const amtLbl = e.currency==='BRL' ? '特别奖励金额 (BRL)' : '特别奖励金额';
   const amtVal = e.currency==='BRL'
@@ -318,7 +345,7 @@ function renderEmpInfo(s){
   // 金额灰字：仅在最终基数 > 25年月薪时显示（奖励被调薪放大）
   const origAmt = base2025 * e.months;
   const amtGrayHtml = (e.currency!=='BRL' && e.base > base2025)
-    ? `<div class="bc-hint bc-gray" title="按2025年12月31日月薪计算的参考金额">¥ ${fmt(origAmt)}</div>` : '';
+    ? `<div class="bc-hint bc-gray" title="按2025年12月月基薪计算的特别奖励金额">¥ ${fmt(origAmt)}</div>` : '';
 
   const noteHtml=s.note
     ? `<div class="emp-alert${s.type==='noncompete'?' warn':''}">${s.note}</div>` : '';
@@ -417,8 +444,9 @@ function renderChoice(s){
         <a href="#" class="ch-link">咨询 ESOP 小助手 ↗</a>
       </div>
       <div class="ch-amount">
-        <div class="ch-amount-lbl">股数参考</div>
-        <div><span class="ch-amount-val" style="font-size:.88rem;font-weight:600;color:var(--text-2)">${curChoice==='stock'||isLocked?shares+'股（参考价 '+DEFAULT_STOCK_HKD+' HKD）':'选择后可试算预估股数'}</span></div>
+        <div class="ch-amount-lbl">预估股数（参考）</div>
+        <div><span class="ch-amount-val">${shares}</span><span class="ch-amount-unit">股</span></div>
+        <div style="font-size:.7rem;color:var(--text-3);margin-top:2px">参考价 ${DEFAULT_STOCK_HKD} HKD</div>
       </div>
     </div>` : `
     <div class="ch-card disabled" data-choice="stock">
@@ -438,9 +466,8 @@ function renderChoice(s){
       </div>
     </div>`;
 
-  // 股数试算：仅在"已选择股票"或"锁定且结果为股票"时展示
-  const showCalc = s.stockAllowed && (curChoice==='stock' || (isLocked && s.choice==='stock'));
-  const calcHtml = showCalc ? `
+  // 股数试算：默认展示，供员工在选择前做对比决策
+  const calcHtml = s.stockAllowed ? `
     <div class="stock-calc" id="stock-calc">
       <div class="sc-title">股数试算（选填，仅供参考）</div>
       <div class="sc-row">
@@ -592,55 +619,8 @@ function bindEvents(s){
     btn.addEventListener('click',()=>{
       if(isSubmitted){
         SCENES[curScene]={...SCENES[curScene],status:'pending',choice:curChoice};
-        cfChecked=false; // ===== URL 参数驱动 =====
-// 从后台点击员工姓名进入时，URL携带 ?emp=xxxxx，此处尝试从后台localStorage数据加载
-(function initFromUrl(){
-  const params=new URLSearchParams(window.location.search);
-  const empId=params.get('emp');
-  if(!empId) return; // 无参数，用默认演示场景
-  // 从 localStorage 查找后台员工数据（后台会在localStorage中同步数据）
-  try {
-    const stored=localStorage.getItem('bonusEmpList');
-    if(!stored) return;
-    const list=JSON.parse(stored);
-    const emp=list.find(e=>e.empId===empId);
-    if(!emp) {
-      // 员工不存在（已被删除）
-      document.getElementById('app').innerHTML=`<div style="padding:48px 24px;text-align:center;color:var(--text-3)"><div style="font-size:2rem;margin-bottom:12px">⚠️</div><div style="font-size:1rem;font-weight:600;color:var(--text)">员工不存在</div><div style="margin-top:8px;font-size:.85rem">工号 ${empId} 未找到，可能已被从名单中移除。</div><div style="margin-top:16px"><a href="admin.html" style="color:var(--blue);font-size:.85rem">← 返回管理后台</a></div></div>`;
-      return;
-    }
-    // 隐藏演示场景切换栏
-    const bar=document.getElementById('demo-bar');
-    if(bar) bar.style.display='none';
-    // 构造 scene 数据
-    const scene={
-      type: emp.type||'standard',
-      status: emp.status||'pending',
-      choice: emp.choice||null,
-      stockAllowed: emp.stockAllowed!==false,
-      empId: emp.empId,
-      emp:{
-        name:emp.name, username:emp.username, org:emp.org,
-        perf:emp.perf, perfScore:emp.perfScore||null,
-        months:emp.months||1, base:emp.bonusBase||emp.currentBase,
-        base2025:emp.base2025, currency:emp.currency||'CNY',
-        currencySymbol:emp.currency==='BRL'?'R$':'¥',
-        paymixBase2025:emp.paymixBase2025,
-        paymixComp2025:emp.payComp2025,
-        paymixCurrentComp:emp.currentPayComp,
-      },
-      note:emp.note||null,
-      submitAt:emp.submitAt||null,
-      modifyAt:emp.modifyAt||null,
-    };
-    // 注入为 urlEmp 场景并切换
-    SCENES['urlEmp']=scene;
-    curScene='urlEmp';
-    curChoice=scene.choice||null;
-  } catch(e){}
-})();
-
-renderAll();
+        cfChecked=false;
+        renderAll();
       } else { doSubmit(s); }
     });
   }
@@ -686,12 +666,16 @@ function doSubmit(s){
 
 /* ---------- 场景切换 ---------- */
 const SCENE_RESET={
-  standard:  {status:'pending',choice:null,submitAt:null,modifyAt:null},
-  overseas:  {status:'pending',choice:null,submitAt:null,modifyAt:null},
-  noncompete:{status:'locked',choice:'cash',submitAt:'2026-07-03 09:00:00',modifyAt:null},
-  paymix:    {status:'pending',choice:null,submitAt:null,modifyAt:null},
-  locked:    {status:'locked',choice:'stock',submitAt:'2026-07-05 16:30:00',modifyAt:null},
+  standard:    {status:'pending',choice:null,submitAt:null,modifyAt:null},
+  'std-cash':  {status:'submitted',choice:'cash',submitAt:'2026-07-02 09:45:00',modifyAt:null},
+  'std-stock': {status:'submitted',choice:'stock',submitAt:'2026-07-04 14:20:00',modifyAt:'2026-07-05 10:08:00'},
+  'locked-cash':{status:'locked',choice:'cash',submitAt:'2026-07-06 16:00:00',modifyAt:null},
+  'locked-stock':{status:'locked',choice:'stock',submitAt:'2026-07-05 16:30:00',modifyAt:null},
+  overseas:    {status:'submitted',choice:'stock',submitAt:'2026-07-03 10:22:15',modifyAt:null},
+  noncompete:  {status:'locked',choice:'cash',submitAt:'2026-07-03 09:00:00',modifyAt:null},
+  paymix:      {status:'pending',choice:null,submitAt:null,modifyAt:null},
 };
+
 document.querySelectorAll('.demo-tab').forEach(btn=>{
   btn.addEventListener('click',()=>{
     const sc=btn.dataset.scene;
@@ -703,6 +687,55 @@ document.querySelectorAll('.demo-tab').forEach(btn=>{
     window.scrollTo({top:0,behavior:'smooth'});
   });
 });
+
+// ===== URL 参数驱动 =====
+// 从后台点击员工姓名进入时，URL携带 ?emp=xxxxx，此处从后台localStorage数据加载对应员工
+(function initFromUrl(){
+  const params=new URLSearchParams(window.location.search);
+  const empId=params.get('emp');
+  if(!empId) return; // 无参数，用默认演示场景
+  try {
+    const stored=localStorage.getItem('bonusEmpList');
+    if(!stored) return;
+    const list=JSON.parse(stored);
+    const emp=list.find(e=>e.empId===empId);
+    if(!emp) {
+      // 员工不存在（已被删除）
+      const bar=document.getElementById('demo-bar');
+      if(bar) bar.style.display='none';
+      document.getElementById('app').innerHTML=`<div style="padding:48px 24px;text-align:center;color:var(--text-3)"><div style="font-size:2rem;margin-bottom:12px">⚠️</div><div style="font-size:1rem;font-weight:600;color:var(--text)">员工不存在</div><div style="margin-top:8px;font-size:.85rem">工号 ${empId} 未找到，可能已被从名单中移除。</div><div style="margin-top:16px"><a href="admin.html" style="color:var(--blue);font-size:.85rem">← 返回管理后台</a></div></div>`;
+      return;
+    }
+    // 隐藏演示场景切换栏
+    const bar=document.getElementById('demo-bar');
+    if(bar) bar.style.display='none';
+    // 构造 scene 数据
+    const scene={
+      type: emp.type||'standard',
+      status: emp.status||'pending',
+      choice: emp.choice||null,
+      stockAllowed: emp.stockAllowed!==false,
+      empId: emp.empId,
+      emp:{
+        name:emp.name, username:emp.username, org:emp.org,
+        perf:emp.perf, perfScore:emp.perfScore||null,
+        months:emp.months||1, base:emp.bonusBase||emp.currentBase,
+        base2025:emp.base2025, currency:emp.currency||'CNY',
+        currencySymbol:emp.currency==='BRL'?'R$':'¥',
+        paymixBase2025:emp.paymixBase2025,
+        paymixComp2025:emp.payComp2025,
+        paymixCurrentComp:emp.currentPayComp,
+      },
+      note:emp.note||null,
+      submitAt:emp.submitAt||null,
+      modifyAt:emp.modifyAt||null,
+    };
+    // 注入为 urlEmp 场景并切换
+    SCENES['urlEmp']=scene;
+    curScene='urlEmp';
+    curChoice=scene.choice||null;
+  } catch(e){}
+})();
 
 renderAll();
 </script>
