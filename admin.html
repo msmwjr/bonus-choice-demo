@@ -175,6 +175,7 @@ tbody td.name-cell{font-weight:600;color:var(--text)}
   <div class="page-tabs">
     <button class="page-tab active" data-tab="list">员工名单</button>
     <button class="page-tab" data-tab="dept">事业部看板</button>
+    <button class="page-tab" data-tab="plan">计划管理</button>
   </div>
 
   <!-- ===== 员工名单页 ===== -->
@@ -209,6 +210,7 @@ tbody td.name-cell{font-weight:600;color:var(--text)}
       </select>
       <button class="btn btn-primary" id="btn-add">+ 新增员工</button>
       <button class="btn btn-danger" id="btn-del-selected" disabled>删除所选</button>
+      <button class="btn btn-ghost" id="btn-push-selected" disabled>📣 批量推送</button>
       <button class="btn btn-ghost" id="btn-export">导出 CSV（示意）</button>
     </div>
 
@@ -231,6 +233,8 @@ tbody td.name-cell{font-weight:600;color:var(--text)}
               <th>特别奖励基数</th>
               <th>选择状态</th>
               <th>选择结果</th>
+              <th>推送状态</th>
+              <th style="white-space:nowrap">操作</th>
             </tr>
           </thead>
           <tbody id="emp-tbody"></tbody>
@@ -246,6 +250,74 @@ tbody td.name-cell{font-weight:600;color:var(--text)}
   <!-- ===== 事业部看板页 ===== -->
   <div id="tab-dept" class="hidden">
     <div class="dept-grid" id="dept-grid"></div>
+  </div>
+
+  <!-- ===== 计划管理页 ===== -->
+  <div id="tab-plan" class="hidden">
+    <!-- Card 1: 选择周期 -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px 24px;margin-bottom:14px">
+      <div style="font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:16px">📅 选择周期配置</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+        <div class="form-field">
+          <label class="form-label">选择开始时间</label>
+          <input class="form-input" type="datetime-local" id="plan-start" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">选择截止时间</label>
+          <input class="form-input" type="datetime-local" id="plan-end" />
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px">
+        <div style="font-size:.82rem;color:var(--text-2)">当前计划状态：<strong id="plan-status-txt" style="color:var(--green)">进行中</strong></div>
+        <button class="btn btn-primary" id="btn-save-period" style="padding:6px 16px;font-size:.8rem">保存周期配置</button>
+      </div>
+    </div>
+
+    <!-- Card 2: 选择开关 -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px 24px;margin-bottom:14px">
+      <div style="font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:12px">🔒 选择开关</div>
+      <div style="display:flex;align-items:center;gap:20px">
+        <div style="font-size:.82rem;color:var(--text-2)">当前选择状态：<strong id="plan-switch-status">已开启</strong></div>
+        <button class="btn" id="btn-toggle-plan" style="font-size:.8rem">关闭选择</button>
+      </div>
+      <div style="margin-top:10px;font-size:.75rem;color:var(--text-3)">关闭后员工将无法继续提交或修改选择；已提交结果保持不变。重新开启后员工可继续提交。</div>
+    </div>
+
+    <!-- Card 3: 推送文案配置 -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px 24px;margin-bottom:14px">
+      <div style="font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:16px">✉️ 推送文案配置</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="form-field">
+          <label class="form-label">推送标题</label>
+          <input class="form-input" id="push-title" value="2025年度绩效特别奖励选择提醒" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">推送正文 <span style="font-size:.7rem;color:var(--text-3)">（可用变量：{员工姓名} {选择截止时间}）</span></label>
+          <textarea class="form-input" id="push-body" rows="3" style="resize:vertical">{员工姓名}，你已获得2025年度绩效特别奖励，请在{选择截止时间}前完成发放方式选择。</textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-field">
+            <label class="form-label">按钮文案</label>
+            <input class="form-input" id="push-btn-text" value="去选择" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">跳转链接文案</label>
+            <input class="form-input" id="push-link-text" value="查看奖励选择页" />
+          </div>
+        </div>
+        <div>
+          <button class="btn btn-primary" id="btn-save-push-msg" style="font-size:.8rem">保存文案配置</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 4: 推送记录 -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px 24px">
+      <div style="font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:12px">📋 推送记录（最近20条）</div>
+      <div id="push-log-list" style="font-size:.8rem;color:var(--text-2)">
+        <div style="color:var(--text-3);font-size:.78rem">暂无推送记录</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -287,6 +359,36 @@ tbody td.name-cell{font-weight:600;color:var(--text)}
     <div class="modal-footer">
       <button class="btn btn-ghost" id="modal-emp-cancel">取消</button>
       <button class="btn btn-primary" id="modal-emp-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 推送确认 Modal -->
+<div class="modal-backdrop hidden" id="modal-push">
+  <div class="modal" style="max-width:380px">
+    <div style="padding:22px;text-align:center">
+      <div style="font-size:2rem;margin-bottom:10px">📣</div>
+      <div style="font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:6px">确认推送？</div>
+      <div style="font-size:.88rem;color:var(--text-2);line-height:1.6" id="push-confirm-text">将向已选员工发送特别奖励选择提醒，是否确认推送？</div>
+    </div>
+    <div style="padding:14px 22px;border-top:1px solid var(--border-lt);display:flex;justify-content:flex-end;gap:8px">
+      <button class="btn btn-ghost" id="modal-push-cancel">取消</button>
+      <button class="btn btn-primary" id="modal-push-ok">确认推送</button>
+    </div>
+  </div>
+</div>
+
+<!-- 关闭选择确认 Modal -->
+<div class="modal-backdrop hidden" id="modal-close-plan">
+  <div class="modal" style="max-width:380px">
+    <div style="padding:22px;text-align:center">
+      <div style="font-size:2rem;margin-bottom:10px">⚠️</div>
+      <div style="font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:6px" id="close-plan-title">关闭选择</div>
+      <div style="font-size:.88rem;color:var(--text-2);line-height:1.6" id="close-plan-text">关闭后员工将无法继续提交或修改选择，是否确认关闭？</div>
+    </div>
+    <div style="padding:14px 22px;border-top:1px solid var(--border-lt);display:flex;justify-content:flex-end;gap:8px">
+      <button class="btn btn-ghost" id="modal-close-plan-cancel">取消</button>
+      <button class="btn btn-danger" id="modal-close-plan-ok">确认关闭</button>
     </div>
   </div>
 </div>
@@ -346,27 +448,27 @@ function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a}
 
 const PRE_LIST = [
   // ① 标准员工 - 待选择
-  {empId:'18342',username:'zhangmingyuan',name:'张明远',org:'商业化产品中心·效率工具团队',bu:'商业化事业部',hrbp:'王雪梅',perf:'S',perfScore:4.8,base2025:45000,payComp2025:'12+4季度',adjustRatio:'11.1%',currentBase:50000,currentPayComp:'12+4季度',bonusBase:50000,months:3,status:'pending',choice:null,submitAt:null,modifyAt:null,bonusLog:[]},
+  {empId:'18342',username:'zhangmingyuan',name:'张明远',org:'商业化产品中心·效率工具团队',bu:'商业化事业部',hrbp:'王雪梅',perf:'S',perfScore:4.8,base2025:45000,payComp2025:'12+4季度',adjustRatio:'11.1%',currentBase:50000,currentPayComp:'12+4季度',bonusBase:50000,months:3,pushStatus:'none',status:'pending',choice:null,submitAt:null,modifyAt:null,bonusLog:[]},
   // ② 标准员工 - 已提交 现金
-  {empId:'31205',username:'linhao',name:'林昊',org:'研发线·系统平台',bu:'研发线',hrbp:'赵丽娟',perf:'A',perfScore:4.3,base2025:38000,payComp2025:'12+4季度',adjustRatio:'10.5%',currentBase:42000,currentPayComp:'12+4季度',bonusBase:42000,months:1,status:'submitted',choice:'cash',submitAt:'2026-07-02 09:45:00',modifyAt:null,bonusLog:[]},
+  {empId:'31205',username:'linhao',name:'林昊',org:'研发线·系统平台',bu:'研发线',hrbp:'赵丽娟',perf:'A',perfScore:4.3,base2025:38000,payComp2025:'12+4季度',adjustRatio:'10.5%',currentBase:42000,currentPayComp:'12+4季度',bonusBase:42000,months:1,pushStatus:'pushed',status:'submitted',choice:'cash',submitAt:'2026-07-02 09:45:00',modifyAt:null,bonusLog:[]},
   // ③ 标准员工 - 已提交 股票
-  {empId:'44580',username:'chenruoxi',name:'陈若曦',org:'可灵AI事业部·产品设计',bu:'可灵AI事业部',hrbp:'刘梅',perf:'S',perfScore:4.7,base2025:60000,payComp2025:'12+4季度',adjustRatio:'8.3%',currentBase:65000,currentPayComp:'12+4季度',bonusBase:65000,months:3,status:'submitted',choice:'stock',submitAt:'2026-07-04 14:20:00',modifyAt:'2026-07-05 10:08:00',bonusLog:[]},
+  {empId:'44580',username:'chenruoxi',name:'陈若曦',org:'可灵AI事业部·产品设计',bu:'可灵AI事业部',hrbp:'刘梅',perf:'S',perfScore:4.7,base2025:60000,payComp2025:'12+4季度',adjustRatio:'8.3%',currentBase:65000,currentPayComp:'12+4季度',bonusBase:65000,months:3,pushStatus:'pushed',status:'submitted',choice:'stock',submitAt:'2026-07-04 14:20:00',modifyAt:'2026-07-05 10:08:00',bonusLog:[]},
   // ④ 标准员工 - 已锁定 现金
-  {empId:'27814',username:'wangyuhui',name:'王宇辉',org:'主站线·创作者运营',bu:'主站线',hrbp:'林晓彤',perf:'A',perfScore:4.0,base2025:35000,payComp2025:'12+4季度',adjustRatio:'5.7%',currentBase:37000,currentPayComp:'12+4季度',bonusBase:37000,months:1,status:'locked',choice:'cash',submitAt:'2026-07-06 16:00:00',modifyAt:null,bonusLog:[]},
+  {empId:'27814',username:'wangyuhui',name:'王宇辉',org:'主站线·创作者运营',bu:'主站线',hrbp:'林晓彤',perf:'A',perfScore:4.0,base2025:35000,payComp2025:'12+4季度',adjustRatio:'5.7%',currentBase:37000,currentPayComp:'12+4季度',bonusBase:37000,months:1,pushStatus:'pushed',status:'locked',choice:'cash',submitAt:'2026-07-06 16:00:00',modifyAt:null,bonusLog:[]},
   // ⑤ 标准员工 - 已锁定 股票
-  {empId:'62052',username:'zhousiyuan',name:'周思远',org:'可灵AI事业部·算法团队',bu:'可灵AI事业部',hrbp:'刘梅',perf:'S',perfScore:4.9,base2025:55000,payComp2025:'12+4季度',adjustRatio:'9.1%',currentBase:60000,currentPayComp:'12+4季度',bonusBase:60000,months:3,status:'locked',choice:'stock',submitAt:'2026-07-05 16:30:00',modifyAt:null,bonusLog:[]},
+  {empId:'62052',username:'zhousiyuan',name:'周思远',org:'可灵AI事业部·算法团队',bu:'可灵AI事业部',hrbp:'刘梅',perf:'S',perfScore:4.9,base2025:55000,payComp2025:'12+4季度',adjustRatio:'9.1%',currentBase:60000,currentPayComp:'12+4季度',bonusBase:60000,months:3,pushStatus:'pushed',status:'locked',choice:'stock',submitAt:'2026-07-05 16:30:00',modifyAt:null,bonusLog:[]},
   // ⑥ 海外员工 - 已提交 股票
-  {empId:'20815',username:'wangfang',name:'Wang Fang',org:'International Growth·Southeast Asia',bu:'综合支持与效率线',hrbp:'陈嘉欣',perf:'A',perfScore:4.2,base2025:76000,payComp2025:'12+4季度',adjustRatio:'11.8%',currentBase:85000,currentPayComp:'12+4季度',bonusBase:85000,months:1,currency:'BRL',status:'submitted',choice:'stock',submitAt:'2026-07-03 10:22:15',modifyAt:null,bonusLog:[]},
+  {empId:'20815',username:'wangfang',name:'Wang Fang',org:'International Growth·Southeast Asia',bu:'综合支持与效率线',hrbp:'陈嘉欣',perf:'A',perfScore:4.2,base2025:76000,payComp2025:'12+4季度',adjustRatio:'11.8%',currentBase:85000,currentPayComp:'12+4季度',bonusBase:85000,months:1,currency:'BRL',pushStatus:'none',status:'submitted',choice:'stock',submitAt:'2026-07-03 10:22:15',modifyAt:null,bonusLog:[]},
   // ⑦ 海外员工 - 已锁定 现金
-  {empId:'35901',username:'marcossilva',name:'Marcos Silva',org:'International Growth·LatAm',bu:'综合支持与效率线',hrbp:'陈嘉欣',perf:'S',perfScore:4.6,base2025:92000,payComp2025:'12+4季度',adjustRatio:'6.5%',currentBase:98000,currentPayComp:'12+4季度',bonusBase:98000,months:3,currency:'BRL',stockAllowed:false,status:'locked',choice:'cash',submitAt:'2026-07-04 11:30:00',modifyAt:null,bonusLog:[]},
+  {empId:'35901',username:'marcossilva',name:'Marcos Silva',org:'International Growth·LatAm',bu:'综合支持与效率线',hrbp:'陈嘉欣',perf:'S',perfScore:4.6,base2025:92000,payComp2025:'12+4季度',adjustRatio:'6.5%',currentBase:98000,currentPayComp:'12+4季度',bonusBase:98000,months:3,currency:'BRL',stockAllowed:false,pushStatus:'failed',status:'locked',choice:'cash',submitAt:'2026-07-04 11:30:00',modifyAt:null,bonusLog:[]},
   // ⑧ 特殊状态员工 - 已锁定 现金（noncompete，不允许股票）
-  {empId:'17601',username:'lijiaxin',name:'李佳欣',org:'技术中台·基础架构',bu:'研发线',hrbp:'赵丽娟',perf:'S',perfScore:4.6,base2025:58000,payComp2025:'12+4季度',adjustRatio:'12.1%',currentBase:65000,currentPayComp:'12+4季度',bonusBase:65000,months:3,type:'noncompete',stockAllowed:false,status:'locked',choice:'cash',submitAt:'2026-07-02 14:55:30',modifyAt:'2026-07-04 09:18:05',bonusLog:[]},
+  {empId:'17601',username:'lijiaxin',name:'李佳欣',org:'技术中台·基础架构',bu:'研发线',hrbp:'赵丽娟',perf:'S',perfScore:4.6,base2025:58000,payComp2025:'12+4季度',adjustRatio:'12.1%',currentBase:65000,currentPayComp:'12+4季度',bonusBase:65000,months:3,type:'noncompete',stockAllowed:false,pushStatus:'pushed',status:'locked',choice:'cash',submitAt:'2026-07-02 14:55:30',modifyAt:'2026-07-04 09:18:05',bonusLog:[]},
   // ⑨ paymix员工 - 待选择
   // 注：paymix切换后月薪为48000，但奖励基数不降低，以base2025=52000为基础；本案无额外调薪
-  {empId:'19723',username:'zhaoxiaodong',name:'赵晓东',org:'短视频业务·创作者生态',bu:'主站线',hrbp:'林晓彤',perf:'A',perfScore:4.1,base2025:52000,payComp2025:'12+4季度+2年度',adjustRatio:'—',currentBase:48000,currentPayComp:'12+4季度',bonusBase:52000,months:1,type:'paymix',paymixBase2025:52000,status:'pending',choice:null,submitAt:null,modifyAt:null,bonusLog:[]},
+  {empId:'19723',username:'zhaoxiaodong',name:'赵晓东',org:'短视频业务·创作者生态',bu:'主站线',hrbp:'林晓彤',perf:'A',perfScore:4.1,base2025:52000,payComp2025:'12+4季度+2年度',adjustRatio:'—',currentBase:48000,currentPayComp:'12+4季度',bonusBase:52000,months:1,type:'paymix',paymixBase2025:52000,pushStatus:'none',status:'pending',choice:null,submitAt:null,modifyAt:null,bonusLog:[]},
   // ⑩ paymix员工 - 已提交 现金
   // 注：paymix切换后又发生2026年实际调薪10%，奖励基数=44000×110%=48400
-  {empId:'53017',username:'sunzihan',name:'孙子涵',org:'电商事业部·增长运营',bu:'电商事业部',hrbp:'张婷',perf:'A',perfScore:4.4,base2025:44000,payComp2025:'12+18月度',adjustRatio:'10%',currentBase:41800,currentPayComp:'12+4季度',bonusBase:48400,months:1,type:'paymix',paymixBase2025:44000,status:'submitted',choice:'cash',submitAt:'2026-07-05 09:10:00',modifyAt:null,bonusLog:[]},
+  {empId:'53017',username:'sunzihan',name:'孙子涵',org:'电商事业部·增长运营',bu:'电商事业部',hrbp:'张婷',perf:'A',perfScore:4.4,base2025:44000,payComp2025:'12+18月度',adjustRatio:'10%',currentBase:41800,currentPayComp:'12+4季度',bonusBase:48400,months:1,type:'paymix',paymixBase2025:44000,pushStatus:'none',status:'submitted',choice:'cash',submitAt:'2026-07-05 09:10:00',modifyAt:null,bonusLog:[]},
 ];
 
 let empList = [...PRE_LIST];
@@ -383,7 +485,7 @@ for(let i=0;i<596;i++){
   const perf=Math.random()<0.4?'S':'A';
   const base2025=randInt(20,80)*1000;
   const ratio=(Math.random()<0.08?-1:1)*randInt(5,30);
-  const adjustRatio=(ratio>0?'+':'')+ratio+'%';
+  const adjustRatio=ratio+'%';
   const currentBase=Math.round(base2025*(1+ratio/100)/1000)*1000;
   const payComp=rand(PAY_COMP_POOL);
   const currentPayComp=rand(PAY_COMP_POOL);
@@ -391,7 +493,7 @@ for(let i=0;i<596;i++){
   const st=rand(STATUS_POOL);
   const choice=CHOICE_MAP[st]();
   const submitAt=st==='submitted'?`2026-07-0${randInt(1,8)} ${randInt(9,22)}:${String(randInt(0,59)).padStart(2,'0')}:${String(randInt(0,59)).padStart(2,'0')}`:null;
-  empList.push({empId,username,name,org:dept,bu,hrbp:rand(HRBP_POOL),perf,perfScore:perf==='S'?(Math.floor(Math.random()*5+45)/10).toFixed(1)*1:(Math.floor(Math.random()*4+40)/10).toFixed(1)*1,base2025,payComp2025:payComp,adjustRatio,currentBase,currentPayComp,bonusBase,months:Math.random()<0.7?1:3,status:st,choice,submitAt,modifyAt:null,bonusLog:[]});
+  empList.push({empId,username,name,org:dept,bu,hrbp:rand(HRBP_POOL),perf,perfScore:perf==='S'?(Math.floor(Math.random()*5+45)/10).toFixed(1)*1:(Math.floor(Math.random()*4+40)/10).toFixed(1)*1,base2025,payComp2025:payComp,adjustRatio,currentBase,currentPayComp,bonusBase,months:Math.random()<0.7?1:3,pushStatus:'none',status:st,choice,submitAt,modifyAt:null,bonusLog:[]});
 }
 
 // ====================================================================
@@ -458,12 +560,17 @@ function renderTable(list){
   };
 
       if(!list.length){
-    tbody.innerHTML=`<tr><td colspan="13" style="text-align:center;padding:32px;color:var(--text-3)">暂无匹配员工</td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="15" style="text-align:center;padding:32px;color:var(--text-3)">暂无匹配员工</td></tr>`;
     count.textContent='0 名员工';
     sel.textContent='';
     return;
   }
 
+  const pushBadge={
+    none:`<span class="badge" style="background:var(--gray-lt);color:var(--text-3);border:1px solid var(--border)">未推送</span>`,
+    pushed:`<span class="badge badge-done">已推送</span>`,
+    failed:`<span class="badge" style="background:var(--red-lt);color:var(--red);border:1px solid #f5a09a">推送失败</span>`,
+  };
   tbody.innerHTML=list.map(e=>{
     const checked=selectedIds.has(e.empId);
     const perfLabel=e.perfScore?`${e.perf} / ${e.perfScore}`:e.perf;
@@ -503,6 +610,13 @@ function renderTable(list){
       </td>
       <td>${statusBadge[e.status]||'—'}</td>
       <td>${e.choice?choiceBadge[e.choice]:'<span class="badge-none">—</span>'}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          ${pushBadge[e.pushStatus||'none']}
+          <button style="padding:2px 8px;border:1px solid var(--border);border-radius:4px;font-size:.72rem;background:var(--surface);color:var(--text-2);cursor:pointer;white-space:nowrap" onclick="doPushOne('${e.empId}')"
+            ${(e.pushStatus==='pushed')?'title="重新推送"':''}>推送</button>
+        </div>
+      </td>
     </tr>`;
   }).join('');
 
@@ -524,12 +638,15 @@ function renderTable(list){
 function updateSelInfo(){
   const sel=document.getElementById('tbl-selected');
   const btn=document.getElementById('btn-del-selected');
+  const btnPush=document.getElementById('btn-push-selected');
   if(selectedIds.size>0){
     sel.textContent=`已选 ${selectedIds.size} 人`;
     btn.disabled=false;
+    btnPush.disabled=false;
   }else{
     sel.textContent='';
     btn.disabled=true;
+    btnPush.disabled=true;
   }
   const checkAll=document.getElementById('check-all');
   if(checkAll){
@@ -692,10 +809,10 @@ function renderDept(){
         <span class="dc-stock">股票 ${d.stock}（${pctStock}%）</span>
         <span class="dc-pending">待选 ${d.pending}</span>
       </div>
-      <div style="margin-top:8px;font-size:.7rem;color:var(--blue)">点击下钒到员工名单 →</div>
+      <div style="margin-top:8px;font-size:.7rem;color:var(--blue)">点击下钻到员工名单 →</div>
     </div>`;
   }).join('');
-  // 绑定下钒事件
+  // 绑定下钻事件
   container.querySelectorAll('.dept-card-drilldown').forEach(card=>{
     card.addEventListener('click',()=>{
       const bu=card.dataset.bu;
@@ -704,6 +821,7 @@ function renderDept(){
       document.querySelector('.page-tab[data-tab="list"]').classList.add('active');
       document.getElementById('tab-list').classList.remove('hidden');
       document.getElementById('tab-dept').classList.add('hidden');
+      document.getElementById('tab-plan').classList.add('hidden');
       // 设置事业部筛选
       const sel=document.getElementById('filter-dept');
       sel.value=bu;
@@ -746,12 +864,187 @@ document.querySelectorAll('.page-tab').forEach(btn=>{
     const tab=btn.dataset.tab;
     document.getElementById('tab-list').classList.toggle('hidden',tab!=='list');
     document.getElementById('tab-dept').classList.toggle('hidden',tab!=='dept');
+    document.getElementById('tab-plan').classList.toggle('hidden',tab!=='plan');
+    if(tab==='plan') renderPlanPage();
   });
 });
 
 // 填充事业部筛选下拉
 const deptSel=document.getElementById('filter-dept');
 BU_LIST.forEach(b=>{const o=document.createElement('option');o.value=b;o.textContent=b;deptSel.appendChild(o)});
+
+// ====================================================================
+// 推送逻辑
+// ====================================================================
+// planConfig 全局对象，读写 localStorage('bonusPlanConfig')
+function getPlanConfig(){try{return JSON.parse(localStorage.getItem('bonusPlanConfig'))||{};}catch(e){return {};}}
+function savePlanConfig(cfg){try{localStorage.setItem('bonusPlanConfig',JSON.stringify(cfg));}catch(e){}}
+
+let _pushPendingIds=null; // 待推送的 empId 列表（批量或单点）
+
+// 批量推送
+document.getElementById('btn-push-selected').addEventListener('click',()=>{
+  const ids=[...selectedIds];
+  if(!ids.length)return;
+  _pushPendingIds=ids;
+  document.getElementById('push-confirm-text').textContent=
+    `将向已选 ${ids.length} 名员工发送特别奖励选择提醒，是否确认推送？`;
+  document.getElementById('modal-push').classList.remove('hidden');
+});
+document.getElementById('modal-push-cancel').addEventListener('click',()=>{
+  document.getElementById('modal-push').classList.add('hidden');_pushPendingIds=null;
+});
+document.getElementById('modal-push').addEventListener('click',e=>{
+  if(e.target===document.getElementById('modal-push')){document.getElementById('modal-push').classList.add('hidden');_pushPendingIds=null;}
+});
+document.getElementById('modal-push-ok').addEventListener('click',()=>{
+  if(!_pushPendingIds)return;
+  const ids=_pushPendingIds;
+  ids.forEach(id=>{const idx=empList.findIndex(e=>e.empId===id);if(idx>=0)empList[idx].pushStatus='pushed';});
+  // 写推送记录
+  const cfg=getPlanConfig();
+  if(!cfg.pushLog)cfg.pushLog=[];
+  cfg.pushLog.unshift({empIds:ids,type:'batch',at:new Date().toLocaleString('zh-CN',{hour12:false}).replace(/\//g,'-'),by:'管理员',status:'success'});
+  if(cfg.pushLog.length>20)cfg.pushLog=cfg.pushLog.slice(0,20);
+  savePlanConfig(cfg);
+  showToast(`✓ 已向 ${ids.length} 名员工推送提醒`);
+  document.getElementById('modal-push').classList.add('hidden');_pushPendingIds=null;
+  syncStorage();refresh();
+});
+
+// 单点推送
+window.doPushOne=function(empId){
+  _pushPendingIds=[empId];
+  const emp=empList.find(e=>e.empId===empId);
+  const name=emp?emp.name:empId;
+  document.getElementById('push-confirm-text').textContent=
+    `将向 ${name} 发送特别奖励选择提醒，是否确认推送？`;
+  document.getElementById('modal-push').classList.remove('hidden');
+};
+
+// ====================================================================
+// 关闭选择开关 Modal
+// ====================================================================
+document.getElementById('modal-close-plan-cancel').addEventListener('click',()=>{document.getElementById('modal-close-plan').classList.add('hidden');});
+document.getElementById('modal-close-plan').addEventListener('click',e=>{if(e.target===document.getElementById('modal-close-plan'))document.getElementById('modal-close-plan').classList.add('hidden');});
+document.getElementById('modal-close-plan-ok').addEventListener('click',()=>{
+  const cfg=getPlanConfig();
+  const willClose=!cfg.closed;
+  cfg.closed=willClose;
+  savePlanConfig(cfg);
+  document.getElementById('modal-close-plan').classList.add('hidden');
+  showToast(willClose?'选择通道已关闭，员工无法提交/修改':'选择通道已重新开启');
+  renderPlanPage();
+});
+
+// ====================================================================
+// 计划管理页渲染
+// ====================================================================
+function renderPlanPage(){
+  const cfg=getPlanConfig();
+
+  // 1. 填充周期字段
+  const planStart=document.getElementById('plan-start');
+  const planEnd=document.getElementById('plan-end');
+  if(planStart&&cfg.startTime)planStart.value=cfg.startTime;
+  if(planEnd&&cfg.endTime)planEnd.value=cfg.endTime;
+
+  // 2. 计划状态
+  const statusTxt=document.getElementById('plan-status-txt');
+  if(statusTxt){
+    const now=new Date();
+    if(cfg.closed){statusTxt.textContent='已关闭';statusTxt.style.color='var(--red)';}
+    else if(cfg.endTime&&new Date(cfg.endTime)<now){statusTxt.textContent='已截止';statusTxt.style.color='var(--text-3)';}
+    else if(cfg.startTime&&new Date(cfg.startTime)>now){statusTxt.textContent='未开始';statusTxt.style.color='var(--amber)';}
+    else{statusTxt.textContent='进行中';statusTxt.style.color='var(--green)';}
+  }
+
+  // 3. 开关按钮
+  const switchStatus=document.getElementById('plan-switch-status');
+  const toggleBtn=document.getElementById('btn-toggle-plan');
+  if(cfg.closed){
+    if(switchStatus)switchStatus.innerHTML='<span style="color:var(--red);font-weight:700">已关闭</span>';
+    if(toggleBtn){toggleBtn.textContent='重新开启';toggleBtn.className='btn btn-primary';toggleBtn.style.fontSize='.8rem';}
+  }else{
+    if(switchStatus)switchStatus.innerHTML='<span style="color:var(--green);font-weight:700">已开启</span>';
+    if(toggleBtn){toggleBtn.textContent='关闭选择';toggleBtn.className='btn btn-danger';toggleBtn.style.fontSize='.8rem';}
+  }
+
+  // 4. 推送文案字段（初始化默认值，不覆盖已保存的）
+  if(cfg.pushMsg){
+    const t=document.getElementById('push-title');const b=document.getElementById('push-body');
+    const bt=document.getElementById('push-btn-text');const lt=document.getElementById('push-link-text');
+    if(t&&cfg.pushMsg.title)t.value=cfg.pushMsg.title;
+    if(b&&cfg.pushMsg.body)b.value=cfg.pushMsg.body;
+    if(bt&&cfg.pushMsg.btnText)bt.value=cfg.pushMsg.btnText;
+    if(lt&&cfg.pushMsg.linkText)lt.value=cfg.pushMsg.linkText;
+  }
+
+  // 5. 推送记录
+  const logEl=document.getElementById('push-log-list');
+  if(logEl){
+    const log=(cfg.pushLog||[]);
+    if(!log.length){logEl.innerHTML='<div style="color:var(--text-3);font-size:.78rem">暂无推送记录</div>';return;}
+    logEl.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:.78rem">
+      <thead><tr style="border-bottom:1px solid var(--border)">
+        <th style="padding:5px 8px;font-weight:600;color:var(--text-3);text-align:left">推送时间</th>
+        <th style="padding:5px 8px;font-weight:600;color:var(--text-3);text-align:left">方式</th>
+        <th style="padding:5px 8px;font-weight:600;color:var(--text-3);text-align:left">人数</th>
+        <th style="padding:5px 8px;font-weight:600;color:var(--text-3);text-align:left">推送人</th>
+        <th style="padding:5px 8px;font-weight:600;color:var(--text-3);text-align:left">状态</th>
+      </tr></thead>
+      <tbody>${log.map(r=>`<tr style="border-bottom:1px solid var(--border-lt)">
+        <td style="padding:5px 8px;color:var(--text-2)">${r.at}</td>
+        <td style="padding:5px 8px">${r.type==='batch'?'批量':'单点'}</td>
+        <td style="padding:5px 8px">${r.empIds.length} 人</td>
+        <td style="padding:5px 8px">${r.by||'管理员'}</td>
+        <td style="padding:5px 8px"><span style="color:${r.status==='success'?'var(--green)':'var(--red)'}">${r.status==='success'?'成功':'失败'}</span></td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+  }
+}
+
+// 保存周期配置
+document.getElementById('btn-save-period').addEventListener('click',()=>{
+  const s=document.getElementById('plan-start').value;
+  const e=document.getElementById('plan-end').value;
+  if(!s||!e){showToast('请填写完整的开始和截止时间');return;}
+  if(new Date(s)>=new Date(e)){showToast('截止时间必须晚于开始时间');return;}
+  const cfg=getPlanConfig();cfg.startTime=s;cfg.endTime=e;savePlanConfig(cfg);
+  showToast('✓ 周期配置已保存，员工选择页将同步展示新时间');
+  renderPlanPage();
+});
+
+// 切换选择开关（先弹确认）
+document.getElementById('btn-toggle-plan').addEventListener('click',()=>{
+  const cfg=getPlanConfig();
+  const willClose=!cfg.closed;
+  if(willClose){
+    document.getElementById('close-plan-title').textContent='关闭选择通道';
+    document.getElementById('close-plan-text').textContent='关闭后员工将无法继续提交或修改选择，是否确认关闭？';
+    document.getElementById('modal-close-plan-ok').textContent='确认关闭';
+    document.getElementById('modal-close-plan-ok').className='btn btn-danger';
+  }else{
+    document.getElementById('close-plan-title').textContent='重新开启选择通道';
+    document.getElementById('close-plan-text').textContent='重新开启后员工可继续提交或修改选择，是否确认开启？';
+    document.getElementById('modal-close-plan-ok').textContent='确认开启';
+    document.getElementById('modal-close-plan-ok').className='btn btn-primary';
+  }
+  document.getElementById('modal-close-plan').classList.remove('hidden');
+});
+
+// 保存推送文案
+document.getElementById('btn-save-push-msg').addEventListener('click',()=>{
+  const cfg=getPlanConfig();
+  cfg.pushMsg={
+    title:document.getElementById('push-title').value,
+    body:document.getElementById('push-body').value,
+    btnText:document.getElementById('push-btn-text').value,
+    linkText:document.getElementById('push-link-text').value,
+  };
+  savePlanConfig(cfg);
+  showToast('✓ 推送文案配置已保存');
+});
 
 // ====================================================================
 // 初始化

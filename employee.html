@@ -308,14 +308,27 @@ function baseBRL(s){ return +(s.emp.base*CNY_BRL).toFixed(0); }
 function sharesCalc(s,price){
   const cashCNY=s.emp.base*s.emp.months;
   if(!price||price<=0)return 0;
-  return +(cashCNY/(price*HKD_CNY)).toFixed(2);
+  return Math.floor(cashCNY/(price*HKD_CNY));
 }
 function fmt(n){return n.toLocaleString('zh-CN',{minimumFractionDigits:0,maximumFractionDigits:0})}
 function fmtF(n){return n.toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function nowStr(){return new Date().toLocaleString('zh-CN',{hour12:false}).replace(/\//g,'-')}
 
+/* ---------- 读取计划配置 ---------- */
+function getPlanConfig(){try{return JSON.parse(localStorage.getItem('bonusPlanConfig'))||{};}catch(e){return {};}}
+function fmtDateCN(dtStr){
+  if(!dtStr)return null;
+  const d=new Date(dtStr);
+  if(isNaN(d))return null;
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
 /* ---------- 渲染头部（状态/结果前置到顶部卡片） ---------- */
 function renderHeader(s){
+  const plan=getPlanConfig();
+  const deadline = fmtDateCN(plan.endTime) || '2026年7月8日 23:59';
+  const winStart = plan.startTime ? `${new Date(plan.startTime).getMonth()+1}月${new Date(plan.startTime).getDate()}日` : '7月1日';
+  const winEnd = plan.endTime ? `${new Date(plan.endTime).getMonth()+1}月${new Date(plan.endTime).getDate()}日` : '7月8日';
   // 选择状态 + 结果
   let statusPill, resultHtml='';
   if(s.status==='locked'){
@@ -335,8 +348,8 @@ function renderHeader(s){
         <a href="#" class="ph-policy-link">查看政策文档 ↗</a>
       </div>
       <div class="ph-meta">
-        <div class="ph-meta-item">选择截止：<span class="ph-meta-hl urgent">2026年7月8日 23:59</span></div>
-        <div class="ph-meta-item">选择窗口：<span class="ph-meta-hl">7月1日 — 7月8日</span></div>
+        <div class="ph-meta-item">选择截止：<span class="ph-meta-hl urgent">${deadline}</span></div>
+        <div class="ph-meta-item">选择窗口：<span class="ph-meta-hl">${winStart} — ${winEnd}</span></div>
         <div class="ph-meta-item"><span style="color:var(--text-3)">选择状态：</span>${statusPill}</div>
         ${resultHtml ? `<div class="ph-meta-item">${resultHtml}</div>` : ''}
       </div>
@@ -373,6 +386,12 @@ function renderEmpInfo(s){
 
   const noteHtml=s.note
     ? `<div class="emp-alert${s.type==='noncompete'?' warn':''}">${s.note}</div>` : '';
+  // paymix 处：将 note 替换为指定文案
+  const finalNote = s.type==='paymix'
+    ? '您的特别奖励基数不受 paymix 切换导致的月薪下降影响；如2026年发生调薪，将在2025年12月月薪基础上按实际调薪比例计算。'
+    : (s.note||null);
+  const finalNoteHtml = finalNote
+    ? `<div class="emp-alert${s.type==='noncompete'?' warn':''}">${finalNote}</div>` : '';
 
   // paymix 补充：仅展示25/12/31月薪、25/12/31薪酬构成、当前薪酬构成（不含当前月薪和调薪比例）
   const paymixHtml = s.type==='paymix' ? `
@@ -414,7 +433,7 @@ function renderEmpInfo(s){
       </div>
       ${e.currency==='BRL'?`<div class="bonus-note">参考汇率：1 CNY ≈ ${CNY_BRL} BRL，实际金额以公司正式执行口径为准。</div>`:''}
       ${paymixHtml}
-      ${noteHtml}
+      ${finalNoteHtml}
     </div>
   </div>`;
 }
@@ -425,7 +444,7 @@ function renderChoice(s){
   const cash=cashAmt(s);
   const sym=s.emp.currencySymbol;
   const cashStr=s.emp.currency==='BRL'?`${sym} ${fmt(cash)}`:`¥ ${fmt(cash)}`;
-  const shares=fmtF(sharesCalc(s,DEFAULT_STOCK_HKD));
+  const shares=fmt(sharesCalc(s,DEFAULT_STOCK_HKD));
   const lockBadge=isLocked?`<span class="status-pill sp-locked" style="margin-bottom:10px">锁定，不可修改</span><br>`:'';
 
   // 现金说明文案（海外/国内区分）
@@ -451,7 +470,7 @@ function renderChoice(s){
         <a href="#" class="ch-link">咨询 ESOP 小助手 ↗</a>
       </div>
       <div class="ch-amount">
-        <div class="ch-amount-lbl">预估股数（参考）</div>
+        <div class="ch-amount-lbl">预估股数（参考）<span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:#dde4f0;color:#5a6882;font-size:.62rem;font-weight:700;cursor:help;vertical-align:middle;margin-left:3px" title="预估股数按发放金额、参考股价及汇率计算后向下取整，仅供参考。最终授予股数以公司正式执行结果为准。">ℹ</span></div>
         <div><span class="ch-amount-val">${shares}</span><span class="ch-amount-unit">股</span><span style="font-size:.7rem;color:var(--text-3);margin-left:6px">参考价 ${DEFAULT_STOCK_HKD} HKD</span></div>
       </div>
     </div>` : `
@@ -472,29 +491,7 @@ function renderChoice(s){
       </div>
     </div>`;
 
-  // 股数试算：默认展示，供员工在选择前做对比决策
-  const calcHtml = s.stockAllowed ? `
-    <div class="stock-calc" id="stock-calc">
-      <div class="sc-title">股数试算（选填，仅供参考）</div>
-      <div class="sc-row">
-        <div class="sc-field">
-          <div class="sc-lbl">模拟股价</div>
-          <div class="sc-input-wrap">
-            <input class="sc-input" type="number" id="price-input" value="${DEFAULT_STOCK_HKD}" min="1" max="999" step="0.1" ${isLocked?'disabled':''}/>
-            <span class="sc-unit">HKD</span>
-          </div>
-        </div>
-        <div class="sc-sep">→</div>
-        <div class="sc-field">
-          <div class="sc-lbl">预估股数</div>
-          <div class="sc-result">
-            <span class="sc-num" id="calc-shares">${shares}</span>
-            <span class="sc-shares-unit">股</span>
-          </div>
-        </div>
-      </div>
-      <div class="sc-note">该试算仅供个人参考，不作为最终授予依据。</div>
-    </div>` : '';
+  // 股数试算区已删除（需求条目13）
 
   return `
   <div class="card section-anim">
@@ -519,15 +516,19 @@ function renderChoice(s){
         </div>
         ${stockCard}
       </div>
-      ${calcHtml}
     </div>
   </div>`;
 }
 
 /* ---------- 确认与提交 ---------- */
 function renderConfirm(s){
+  const plan=getPlanConfig();
   if(s.status==='locked'){
     return `<div class="card section-anim"><div class="confirm-wrap"><div class="submit-locked">🔒 选择窗口已关闭，无法修改</div></div></div>`;
+  }
+  // 如果后台已手动关闭选择通道，且员工未提交，则禁止提交
+  if(plan.closed && s.status!=='submitted'){
+    return `<div class="card section-anim"><div class="confirm-wrap"><div class="submit-locked">⚠️ 选择通道已关闭，无法提交</div></div></div>`;
   }
   const isSubmitted=s.status==='submitted';
   const checked=isSubmitted||cfChecked;
@@ -630,18 +631,6 @@ function bindEvents(s){
       } else { doSubmit(s); }
     });
   }
-  // 股价输入
-  const priceInput=document.getElementById('price-input');
-  if(priceInput){
-    priceInput.addEventListener('input',()=>{
-      const v=parseFloat(priceInput.value);
-      if(!isNaN(v)&&v>0){
-        stockPrice=v;
-        const el=document.getElementById('calc-shares');
-        if(el)el.textContent=fmtF(sharesCalc(s,v));
-      }
-    });
-  }
 }
 
 function updateChoiceUI(){
@@ -731,6 +720,7 @@ document.querySelectorAll('.demo-tab').forEach(btn=>{
         paymixBase2025:emp.paymixBase2025,
         paymixComp2025:emp.payComp2025,
         paymixCurrentComp:emp.currentPayComp,
+        paymixAdjRatio:emp.adjustRatio&&emp.adjustRatio!=='—'?emp.adjustRatio:null,
       },
       note:emp.note||null,
       submitAt:emp.submitAt||null,
