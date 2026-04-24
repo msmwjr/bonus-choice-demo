@@ -320,10 +320,10 @@ function renderHeader(s){
   let statusPill, resultHtml='';
   if(s.status==='locked'){
     statusPill=`<span class="status-pill sp-locked">■ 已锁定</span>`;
-    if(s.choice) resultHtml=`<span class="ph-result-item"><span class="ph-status-label">选择结果：</span><strong>${s.choice==='cash'?'现金发放':'股票归属'}</strong></span>`;
+    if(s.choice) resultHtml=`<span class="ph-status-label">选择结果：</span><strong>${s.choice==='cash'?'现金发放':'股票归属'}</strong>`;
   } else if(s.status==='submitted'){
     statusPill=`<span class="status-pill sp-done">● 已提交</span>`;
-    if(s.choice) resultHtml=`<span class="ph-result-item"><span class="ph-status-label">选择结果：</span><strong>${s.choice==='cash'?'现金发放':'股票归属'}</strong></span>`;
+    if(s.choice) resultHtml=`<span class="ph-status-label">选择结果：</span><strong>${s.choice==='cash'?'现金发放':'股票归属'}</strong>`;
   } else {
     statusPill=`<span class="status-pill sp-pending">○ 待选择</span>`;
   }
@@ -337,10 +337,8 @@ function renderHeader(s){
       <div class="ph-meta">
         <div class="ph-meta-item">选择截止：<span class="ph-meta-hl urgent">2026年7月8日 23:59</span></div>
         <div class="ph-meta-item">选择窗口：<span class="ph-meta-hl">7月1日 — 7月8日</span></div>
-      </div>
-      <div class="ph-status-row">
-        <span class="ph-status-label">选择状态：</span>${statusPill}
-        ${resultHtml}
+        <div class="ph-meta-item"><span style="color:var(--text-3)">选择状态：</span>${statusPill}</div>
+        ${resultHtml ? `<div class="ph-meta-item">${resultHtml}</div>` : ''}
       </div>
     </div>
   </div>`;
@@ -376,22 +374,6 @@ function renderEmpInfo(s){
   const noteHtml=s.note
     ? `<div class="emp-alert${s.type==='noncompete'?' warn':''}">${s.note}</div>` : '';
 
-  // 选择状态 + 选择结果分开展示
-  let statusPill, resultPill='';
-  if(s.status==='locked'){
-    statusPill=`<span class="status-pill sp-locked">■ 已锁定</span>`;
-    if(s.choice) resultPill=`<span style="margin-left:16px;font-size:.8rem;color:var(--text-2)">选择结果：<strong>${s.choice==='cash'?'现金发放':'股票归属'}</strong></span>`;
-  } else if(s.status==='submitted'){
-    statusPill=`<span class="status-pill sp-done">● 已提交</span>`;
-    if(s.choice) resultPill=`<span style="margin-left:16px;font-size:.8rem;color:var(--text-2)">选择结果：<strong>${s.choice==='cash'?'现金发放':'股票归属'}</strong></span>`;
-  } else {
-    statusPill=`<span class="status-pill sp-pending">○ 待选择</span>`;
-  }
-  const choiceStatusHtml = `
-    <div class="choice-status-row">
-      <span class="cs-label">选择状态：</span>${statusPill}${resultPill}
-    </div>`;
-
   // paymix 补充：仅展示25/12/31月薪、25/12/31薪酬构成、当前薪酬构成（不含当前月薪和调薪比例）
   const paymixHtml = s.type==='paymix' ? `
     <div class="paymix-section">
@@ -412,7 +394,6 @@ function renderEmpInfo(s){
         <div><div class="ef-label">所属组织</div><div class="ef-value">${e.org}</div></div>
         <div><div class="ef-label">2025年度绩效等级</div><div class="ef-value"><span class="perf-badge ${perfCls}">${perfLabel}</span></div></div>
       </div>
-      ${choiceStatusHtml}
       <div class="bonus-row" style="margin-top:12px">
         <div class="bonus-cell">
           <div class="bc-label">特别奖励月数</div>
