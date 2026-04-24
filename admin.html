@@ -111,10 +111,9 @@ tbody td.name-cell{font-weight:600;color:var(--text)}
 .badge-stock{background:var(--blue-lt);color:var(--blue)}
 .badge-none{color:var(--text-3);font-size:.78rem}
 
-/* 头像 */
-.avatar-link{display:flex;align-items:center;gap:7px;cursor:pointer}
-.avatar-link:hover .emp-name-text{text-decoration:underline;text-underline-offset:2px;color:var(--blue)}
-.avatar-circle{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;color:#fff;flex-shrink:0}
+/* 员工姓名链接（无头像） */
+.emp-name-text{color:var(--text);font-weight:600;cursor:pointer}
+.emp-name-text:hover{text-decoration:underline;text-underline-offset:2px;color:var(--blue)}
 
 /* table footer */
 .table-footer{padding:10px 16px;border-top:1px solid var(--border-lt);font-size:.78rem;color:var(--text-3);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
@@ -225,8 +224,8 @@ tbody td.name-cell{font-weight:600;color:var(--text)}
               <th>所属组织 / 事业部</th>
               <th>HRBP</th>
               <th>绩效</th>
-              <th>月基薪（25/12/31）</th>
-              <th>薪酬构成（25/12/31）</th>
+              <th title="当前月基薪；如有调薪，下方灰字显示2025年12月31日对照值">月基薪</th>
+              <th title="当前薪酬构成；如有变化，下方灰字显示25年对照值">薪酬构成</th>
               <th>26年调薪</th>
               <th>特别奖励基数</th>
               <th>选择状态</th>
@@ -262,6 +261,8 @@ tbody td.name-cell{font-weight:600;color:var(--text)}
         <div class="form-field"><label class="form-label">用户名<span class="form-req">*</span></label><input class="form-input" id="f-username" placeholder="如 zhangmingyuan"/></div>
         <div class="form-field"><label class="form-label">姓名<span class="form-req">*</span></label><input class="form-input" id="f-name" placeholder="如 张明远"/></div>
         <div class="form-field"><label class="form-label">绩效<span class="form-req">*</span></label><select class="form-select" id="f-perf"><option value="">请选择</option><option value="S">S</option><option value="A">A</option></select></div>
+        <div class="form-field"><label class="form-label">绩效分数</label><input class="form-input" id="f-perfScore" type="number" placeholder="如 4.7" min="0" max="5" step="0.1"/></div>
+        <div class="form-field"><label class="form-label">奖励月数<span class="form-req">*</span></label><select class="form-select" id="f-months"><option value="1">1个月</option><option value="3">3个月</option></select></div>
         <div class="form-field form-full"><label class="form-label">所属组织<span class="form-req">*</span></label><input class="form-input" id="f-org" placeholder="如 商业化产品中心 · 效率工具团队"/></div>
         <div class="form-field form-full"><label class="form-label">事业部<span class="form-req">*</span></label>
           <select class="form-select" id="f-bu">
@@ -343,10 +344,11 @@ function rand(arr){return arr[Math.floor(Math.random()*arr.length)]}
 function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a}
 
 const PRE_LIST = [
-  {empId:'18342',username:'zhangmingyuan',name:'张明远',org:'商业化产品中心·效率工具团队',bu:'商业化事业部',hrbp:'王雪梅',perf:'S',base2025:45000,payComp2025:'12+4季度',adjustRatio:'11.1%',currentBase:50000,currentPayComp:'12+4季度',bonusBase:50000,status:'pending',choice:null,submitAt:null,modifyAt:null},
-  {empId:'20815',username:'wangfang',name:'Wang Fang',org:'International Growth·Southeast Asia',bu:'综合支持与效率线',hrbp:'陈嘉欣',perf:'A',base2025:76000,payComp2025:'12+4季度',adjustRatio:'11.8%',currentBase:85000,currentPayComp:'12+4季度',bonusBase:85000,status:'submitted',choice:'stock',submitAt:'2026-07-03 10:22:15',modifyAt:null},
-  {empId:'17601',username:'lijiaxin',name:'李佳欣',org:'技术中台·基础架构',bu:'研发线',hrbp:'赵丽娟',perf:'S',base2025:58000,payComp2025:'12+4季度',adjustRatio:'12.1%',currentBase:65000,currentPayComp:'12+4季度',bonusBase:65000,status:'submitted',choice:'cash',submitAt:'2026-07-02 14:55:30',modifyAt:'2026-07-04 09:18:05'},
-  {empId:'19723',username:'zhaoxiaodong',name:'赵晓东',org:'短视频业务·创作者生态',bu:'主站线',hrbp:'林晓彤',perf:'A',base2025:52000,payComp2025:'12+4季度+2年度',adjustRatio:'-7.7%',currentBase:48000,currentPayComp:'12+4季度',bonusBase:48000,status:'pending',choice:null,submitAt:null,modifyAt:null},
+  {empId:'18342',username:'zhangmingyuan',name:'张明远',org:'商业化产品中心·效率工具团队',bu:'商业化事业部',hrbp:'王雪梅',perf:'S',perfScore:4.8,base2025:45000,payComp2025:'12+4季度',adjustRatio:'11.1%',currentBase:50000,currentPayComp:'12+4季度',bonusBase:50000,months:3,status:'pending',choice:null,submitAt:null,modifyAt:null,bonusLog:[]},
+  {empId:'20815',username:'wangfang',name:'Wang Fang',org:'International Growth·Southeast Asia',bu:'综合支持与效率线',hrbp:'陈嘉欣',perf:'A',perfScore:4.2,base2025:76000,payComp2025:'12+4季度',adjustRatio:'11.8%',currentBase:85000,currentPayComp:'12+4季度',bonusBase:85000,months:1,currency:'BRL',status:'submitted',choice:'stock',submitAt:'2026-07-03 10:22:15',modifyAt:null,bonusLog:[]},
+  {empId:'17601',username:'lijiaxin',name:'李佳欣',org:'技术中台·基础架构',bu:'研发线',hrbp:'赵丽娟',perf:'S',perfScore:4.6,base2025:58000,payComp2025:'12+4季度',adjustRatio:'12.1%',currentBase:65000,currentPayComp:'12+4季度',bonusBase:65000,months:3,stockAllowed:false,status:'locked',choice:'cash',submitAt:'2026-07-02 14:55:30',modifyAt:'2026-07-04 09:18:05',bonusLog:[]},
+  {empId:'19723',username:'zhaoxiaodong',name:'赵晓东',org:'短视频业务·创作者生态',bu:'主站线',hrbp:'林晓彤',perf:'A',perfScore:4.1,base2025:52000,payComp2025:'12+4季度+2年度',adjustRatio:'-7.7%',currentBase:48000,currentPayComp:'12+4季度',bonusBase:48000,months:1,type:'paymix',paymixBase2025:52000,status:'pending',choice:null,submitAt:null,modifyAt:null,bonusLog:[]},
+  {empId:'62052',username:'zhousiyuan',name:'周思远',org:'可灵AI事业部·算法团队',bu:'可灵AI事业部',hrbp:'刘梅',perf:'S',perfScore:4.9,base2025:55000,payComp2025:'12+4季度',adjustRatio:'9.1%',currentBase:60000,currentPayComp:'12+4季度',bonusBase:60000,months:3,status:'locked',choice:'stock',submitAt:'2026-07-05 16:30:00',modifyAt:null,bonusLog:[]},
 ];
 
 let empList = [...PRE_LIST];
@@ -371,7 +373,7 @@ for(let i=0;i<596;i++){
   const st=rand(STATUS_POOL);
   const choice=CHOICE_MAP[st]();
   const submitAt=st==='submitted'?`2026-07-0${randInt(1,8)} ${randInt(9,22)}:${String(randInt(0,59)).padStart(2,'0')}:${String(randInt(0,59)).padStart(2,'0')}`:null;
-  empList.push({empId,username,name,org:dept,bu,hrbp:rand(HRBP_POOL),perf,base2025,payComp2025:payComp,adjustRatio,currentBase,currentPayComp,bonusBase,status:st,choice,submitAt,modifyAt:null});
+  empList.push({empId,username,name,org:dept,bu,hrbp:rand(HRBP_POOL),perf,perfScore:perf==='S'?(Math.floor(Math.random()*5+45)/10).toFixed(1)*1:(Math.floor(Math.random()*4+40)/10).toFixed(1)*1,base2025,payComp2025:payComp,adjustRatio,currentBase,currentPayComp,bonusBase,months:Math.random()<0.7?1:3,status:st,choice,submitAt,modifyAt:null,bonusLog:[]});
 }
 
 // ====================================================================
@@ -379,8 +381,9 @@ for(let i=0;i<596;i++){
 // ====================================================================
 function fmtNum(n){return n!=null?n.toLocaleString('zh-CN'):'—'}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400)}
-function avatarBg(name){let h=0;for(const c of name)h=(h*31+c.charCodeAt(0))&0xffff;return AVATAR_COLORS[h%AVATAR_COLORS.length]}
-function avatarChar(name){return name.charAt(0).toUpperCase()}
+// 字母头字符
+// syncToLocalStorage: 每次数据变动后同步到localStorage，供员工选择页按URL参数读取
+function syncStorage(){try{localStorage.setItem('bonusEmpList',JSON.stringify(empList));}catch(e){}}
 
 // ====================================================================
 // 统计看板
@@ -444,28 +447,33 @@ function renderTable(list){
 
   tbody.innerHTML=list.map(e=>{
     const checked=selectedIds.has(e.empId);
-    const isNeg=e.adjustRatio&&e.adjustRatio.startsWith('-');
+    const perfLabel=e.perfScore?`${e.perf} / ${e.perfScore}`:e.perf;
+    // 月基薪：主值=currentBase；灰字=base2025（仅在不同时显示）
+    const baseSubHtml = (e.base2025&&e.currentBase!==e.base2025)
+      ? `<div class="cell-sub">25年：${fmtNum(e.base2025)}</div>` : '';
+    // 薪酬构成：主值=currentPayComp；灰字=payComp2025（仅在不同时显示）
+    const payCompSubHtml = (e.payComp2025&&e.currentPayComp!==e.payComp2025)
+      ? `<div class="cell-sub">${e.payComp2025}</div>` : '';
     return `<tr class="${checked?'selected-row':''}" data-id="${e.empId}">
       <td><input type="checkbox" class="row-check" data-id="${e.empId}" ${checked?'checked':''}></td>
       <td class="mono">${e.empId}</td>
       <td class="mono">${e.username}</td>
       <td class="name-cell">
-        <a href="employee.html?emp=${e.empId}" class="avatar-link" title="查看员工选择页" target="_blank">
-          <div class="avatar-circle" style="background:${avatarBg(e.name)}">${avatarChar(e.name)}</div>
-          <span class="emp-name-text">${e.name}</span>
-        </a>
+        <a href="employee.html?emp=${e.empId}" class="emp-name-text" title="查看员工选择页" target="_blank">${e.name}</a>
       </td>
       <td class="tbl-org" title="${e.org}">
         <div class="cell-main">${e.bu}</div>
         <div class="cell-sub">${e.org}</div>
       </td>
       <td>${e.hrbp}</td>
-      <td><span class="badge badge-${e.perf}">${e.perf}</span></td>
+      <td><span class="badge badge-${e.perf}">${perfLabel}</span></td>
       <td>
         <div class="cell-main">${fmtNum(e.currentBase)}</div>
-        <div class="cell-sub">25年：${fmtNum(e.base2025)}</div>
-        <div class="cell-main" style="margin-top:2px;font-size:.75rem;color:var(--text-3)">${e.currentPayComp||'—'}</div>
-        <div class="cell-sub">${e.payComp2025||'—'}</div>
+        ${baseSubHtml}
+      </td>
+      <td>
+        <div class="cell-main">${e.currentPayComp||'—'}</div>
+        ${payCompSubHtml}
       </td>
       <td style="font-weight:600;color:${e.adjustRatio&&e.adjustRatio.startsWith('-')?'var(--red)':'var(--text-2)'}">${e.adjustRatio||'—'}</td>
       <td>
@@ -541,7 +549,7 @@ function getFiltered(){
 function refresh(){renderStats();renderTable(getFiltered());renderDept();}
 
 // ====================================================================
-// 内联编辑基数
+// 内联编辑基数（带留痕）
 // ====================================================================
 window.startEditBase=function(empId){
   const emp=empList.find(e=>e.empId===empId);
@@ -551,6 +559,7 @@ window.startEditBase=function(empId){
   wrap.innerHTML=`
     <div class="bonus-input-wrap">
       <input class="bonus-input" id="bi-${empId}" type="number" value="${emp.bonusBase}" min="0"/>
+      <input class="bonus-input" id="bi-reason-${empId}" type="text" placeholder="修改原因（必填）" style="width:130px;margin-left:4px"/>
       <button class="bonus-save-btn" onclick="saveBase('${empId}')">✓</button>
       <button class="bonus-cancel-btn" onclick="cancelBase('${empId}','${emp.bonusBase}')">✕</button>
     </div>`;
@@ -559,11 +568,22 @@ window.startEditBase=function(empId){
 };
 window.saveBase=function(empId){
   const inp=document.getElementById('bi-'+empId);
+  const reasonInp=document.getElementById('bi-reason-'+empId);
   if(!inp)return;
   const val=parseFloat(inp.value);
+  const reason=(reasonInp&&reasonInp.value.trim())||'';
   if(isNaN(val)||val<=0){alert('请输入有效的基数金额');return}
+  if(!reason){alert('请填写修改原因');return}
   const idx=empList.findIndex(e=>e.empId===empId);
-  if(idx>=0){empList[idx].bonusBase=val;showToast(`✓ 基数已修改为 ${val.toLocaleString('zh-CN')} 元`)}
+  if(idx>=0){
+    const oldVal=empList[idx].bonusBase;
+    const logEntry={from:oldVal,to:val,reason,by:'管理员',at:new Date().toLocaleString('zh-CN',{hour12:false}).replace(/\//g,'-')};
+    if(!empList[idx].bonusLog) empList[idx].bonusLog=[];
+    empList[idx].bonusLog.push(logEntry);
+    empList[idx].bonusBase=val;
+    showToast(`✓ 基数已从 ${oldVal.toLocaleString('zh-CN')} 改为 ${val.toLocaleString('zh-CN')} 元`);
+    syncStorage();
+  }
   refresh();
 };
 window.cancelBase=function(empId,oldVal){
@@ -576,7 +596,7 @@ window.cancelBase=function(empId,oldVal){
 // ====================================================================
 function openAddEmp(){
   document.getElementById('modal-emp-title').textContent='新增员工';
-  ['empId','username','name','perf','org','bu','hrbp','base2025','payComp2025','adjustRatio','currentBase','currentPayComp','bonusBase'].forEach(f=>{
+  ['empId','username','name','perf','org','bu','hrbp','base2025','payComp2025','adjustRatio','currentBase','currentPayComp','bonusBase','perfScore','months'].forEach(f=>{
     const el=document.getElementById('f-'+f);if(el)el.value='';
   });
   document.getElementById('modal-emp').classList.remove('hidden');
@@ -598,9 +618,9 @@ function saveEmp(){
   const bonusBase=parseFloat(document.getElementById('f-bonusBase').value)||0;
   if(!empId||!name||!username||!perf||!org||!bu||!hrbp||!base2025||!currentBase||!bonusBase){alert('请填写所有必填字段（带 * 号的）');return}
   if(empList.find(e=>e.empId===empId)){alert('工号已存在，请修改');return}
-  empList.push({empId,username,name,org,bu,hrbp,perf,base2025,payComp2025,adjustRatio,currentBase,currentPayComp,bonusBase,status:'pending',choice:null,submitAt:null,modifyAt:null});
+  empList.push({empId,username,name,org,bu,hrbp,perf,perfScore:parseFloat(document.getElementById('f-perfScore')?document.getElementById('f-perfScore').value:0)||null,base2025,payComp2025,adjustRatio,currentBase,currentPayComp,bonusBase,months:parseInt(document.getElementById('f-months')?document.getElementById('f-months').value:1)||1,status:'pending',choice:null,submitAt:null,modifyAt:null,bonusLog:[]});
   showToast(`✓ 已新增员工 ${name}`);
-  closeEmpModal();refresh();
+  closeEmpModal();syncStorage();refresh();
 }
 
 // ====================================================================
@@ -608,7 +628,10 @@ function saveEmp(){
 // ====================================================================
 function openDelSelected(){
   const n=selectedIds.size;
-  document.getElementById('del-confirm-text').textContent=`将从名单中删除已选 ${n} 名员工，操作不可恢复。`;
+  const submittedInSel=empList.filter(e=>selectedIds.has(e.empId)&&e.status==='submitted').length;
+  let txt=`将从名单中删除已选 ${n} 名员工，操作不可恢复。`;
+  if(submittedInSel>0) txt+=`\n\n⚠️ 其中 ${submittedInSel} 名员工已提交选择，删除后员工将无法再进入选择页，且已提交数据将一并清除。`;
+  document.getElementById('del-confirm-text').textContent=txt;
   document.getElementById('modal-del').classList.remove('hidden');
 }
 function closeDel(){document.getElementById('modal-del').classList.add('hidden')}
@@ -618,7 +641,7 @@ function doDelete(){
   empList=empList.filter(e=>!selectedIds.has(e.empId));
   selectedIds.clear();
   showToast(`已删除 ${names.length} 名员工`);
-  closeDel();refresh();
+  closeDel();syncStorage();refresh();
 }
 
 // ====================================================================
@@ -714,6 +737,7 @@ BU_LIST.forEach(b=>{const o=document.createElement('option');o.value=b;o.textCon
 // ====================================================================
 // 初始化
 // ====================================================================
+syncStorage(); // 初始化时同步数据到 localStorage，供员工选择页按URL参数加载
 refresh();
 </script>
 </body>

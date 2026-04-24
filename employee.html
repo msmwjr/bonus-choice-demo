@@ -97,6 +97,7 @@ a{text-decoration:none}
 .bc-value{font-size:1.28rem;font-weight:800;color:var(--blue);letter-spacing:-.01em}
 .bc-value .unit{font-size:.78rem;font-weight:500;color:var(--text-3);margin-left:2px}
 .bc-hint{margin-top:4px;font-size:.72rem;color:var(--text-3);line-height:1.4}
+.bc-hint.bc-gray{cursor:help;text-decoration:underline dotted;text-underline-offset:2px}
 .bonus-note{margin-top:10px;font-size:.75rem;color:var(--text-3);line-height:1.5}
 /* 选择状态行 */
 .choice-status-row{margin-top:10px;display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--text-2)}
@@ -205,6 +206,7 @@ a{text-decoration:none}
     <button class="demo-tab" data-scene="overseas">海外员工（巴西）</button>
     <button class="demo-tab" data-scene="noncompete">特殊状态员工</button>
     <button class="demo-tab" data-scene="paymix">paymix 员工</button>
+    <button class="demo-tab" data-scene="locked">截止后锁定</button>
   </div>
   <a href="admin.html" class="demo-back">← 返回管理后台</a>
 </div>
@@ -221,36 +223,43 @@ const SCENES = {
   standard: {
     type:'standard', status:'pending', choice:null, stockAllowed:true,
     empId:'18342',
-    emp:{name:'张明远',username:'zhangmingyuan',org:'商业化产品中心 · 效率工具团队',perf:'S',perfScore:4.8,months:3,base:50000,currency:'CNY',currencySymbol:'¥'},
+    emp:{name:'张明远',username:'zhangmingyuan',org:'商业化产品中心 · 效率工具团队',perf:'S',perfScore:4.8,months:3,base:50000,base2025:40000,currency:'CNY',currencySymbol:'¥'},
     note:null, submitAt:null, modifyAt:null,
   },
   overseas: {
     type:'overseas', status:'pending', choice:null, stockAllowed:true,
     empId:'20815',
-    emp:{name:'Wang Fang',username:'wangfang',org:'International Growth · Southeast Asia',perf:'A',perfScore:4.2,months:1,base:85000,currency:'BRL',currencySymbol:'R$'},
+    emp:{name:'Wang Fang',username:'wangfang',org:'International Growth · Southeast Asia',perf:'A',perfScore:4.2,months:1,base:85000,base2025:85000,currency:'BRL',currencySymbol:'R$'},
     note:'金额以巴西雷亚尔（BRL）展示，实际发放以当地薪资周期和公司执行安排为准。',
     submitAt:null, modifyAt:null,
   },
   noncompete: {
-    type:'noncompete', status:'pending', choice:'cash', stockAllowed:false,
+    type:'noncompete', status:'locked', choice:'cash', stockAllowed:false,
     empId:'17601',
-    emp:{name:'李佳欣',username:'lijiaxin',org:'技术中台 · 基础架构',perf:'S',perfScore:4.6,months:3,base:65000,currency:'CNY',currencySymbol:'¥'},
+    emp:{name:'李佳欣',username:'lijiaxin',org:'技术中台 · 基础架构',perf:'S',perfScore:4.6,months:3,base:65000,base2025:65000,currency:'CNY',currencySymbol:'¥'},
     note:'您当前处于特殊状态，本次特别奖励仅支持现金发放，不可选择股票归属。如有疑问请联系 HRBP。',
-    submitAt:null, modifyAt:null,
+    submitAt:'2026-07-03 09:00:00', modifyAt:null,
   },
   paymix: {
     type:'paymix', status:'pending', choice:null, stockAllowed:true,
     empId:'19723',
-    emp:{name:'赵晓东',username:'zhaoxiaodong',org:'短视频业务 · 创作者生态',perf:'A',perfScore:4.1,months:1,base:48000,currency:'CNY',currencySymbol:'¥',
-      // paymix 薪酬构成数据
-      paymixBase2025:52000,paymixComp2025:'12+4季度',paymixAdjustRatio:'-7.7%',paymixCurrentComp:'12+4季度'},
-    note:'您的奖励基数已按 paymix 规则进行特殊处理，当前展示基数综合了 2025年12月31日月薪及 2026年调薪比例。',
+    emp:{name:'赵晓东',username:'zhaoxiaodong',org:'短视频业务 · 创作者生态',perf:'A',perfScore:4.1,months:1,base:48000,base2025:52000,currency:'CNY',currencySymbol:'¥',
+      // paymix 薪酬构成数据（不含当前月薪，不展示调薪比例）
+      paymixBase2025:52000,paymixComp2025:'12+4季度',paymixCurrentComp:'12+6季度'},
+    note:'您的奖励基数已按 paymix 规则处理。',
     submitAt:null, modifyAt:null,
+  },
+  locked: {
+    type:'standard', status:'locked', choice:'stock', stockAllowed:true,
+    empId:'62052',
+    emp:{name:'周思远',username:'zhousiyuan',org:'可灵AI事业部 · 算法团队',perf:'S',perfScore:4.9,months:3,base:60000,base2025:55000,currency:'CNY',currencySymbol:'¥'},
+    note:null, submitAt:'2026-07-05 16:30:00', modifyAt:null,
   },
 };
 
-// 特殊状态场景默认选中现金
+// 根据URL参数加载员工，否则用演示场景
 let curScene='standard', curChoice=SCENES['standard'].choice, cfChecked=false, stockPrice=DEFAULT_STOCK_HKD;
+// URL参数驱动：从后台点击员工姓名链接进入时，按empId加载对应数据
 function getS(){return SCENES[curScene]}
 
 function cashAmt(s){
@@ -267,14 +276,8 @@ function fmt(n){return n.toLocaleString('zh-CN',{minimumFractionDigits:0,maximum
 function fmtF(n){return n.toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function nowStr(){return new Date().toLocaleString('zh-CN',{hour12:false}).replace(/\//g,'-')}
 
-/* ---------- 渲染头部 ---------- */
+/* ---------- 渲染头部（不展示标题状态badge，状态放员工信息卡） ---------- */
 function renderHeader(s){
-  const st={
-    pending:  {cls:'sp-pending', icon:'○',txt:'待选择'},
-    submitted:{cls:'sp-done',    icon:'●',txt:'已提交，截止前可修改'},
-    locked:   {cls:'sp-locked',  icon:'■',txt:'已锁定，不可修改'},
-  }[s.status]||{cls:'sp-pending',icon:'○',txt:'待选择'};
-  const cashOnly=!s.stockAllowed?`<span class="status-pill sp-cashonly">仅支持现金</span>`:'';
   return `
   <div class="card section-anim">
     <div class="page-header">
@@ -285,8 +288,6 @@ function renderHeader(s){
       <div class="ph-meta">
         <div class="ph-meta-item">选择截止：<span class="ph-meta-hl urgent">2026年7月8日 23:59</span></div>
         <div class="ph-meta-item">选择窗口：<span class="ph-meta-hl">7月1日 — 7月8日</span></div>
-        <span class="status-pill ${st.cls}">${st.icon} ${st.txt}</span>
-        ${cashOnly}
       </div>
     </div>
   </div>`;
@@ -296,48 +297,55 @@ function renderHeader(s){
 function renderEmpInfo(s){
   const e=s.emp;
   const perfCls=e.perf==='S'?'perf-S':'perf-A';
+  const perfLabel=e.perfScore?`${e.perf} / ${e.perfScore}`:e.perf;
   const cash=cashAmt(s);
   const sym=e.currencySymbol;
 
-  // 特别奖励基数展示：BRL 员工用 BRL
+  // 特别奖励基数（base已是最终值，base2025为25/12/31月薪）
   const baseLbl = e.currency==='BRL' ? '特别奖励基数 (BRL)' : '特别奖励基数';
   const baseVal = e.currency==='BRL'
     ? `${sym} ${fmt(baseBRL(s))}`
     : `¥ ${fmt(e.base)}`;
-  // 基数灰字说明：25/12/31月薪
-  const baseHint = e.currency!=='BRL'
-    ? `<div class="bc-hint">以 2025年12月31日月薪为准</div>` : '';
+  // 基数灰字：仅在最终基数 > 25年12/31月薪时显示，tooltip解释
+  const base2025 = e.base2025 || e.base;
+  const baseGrayHtml = (e.currency!=='BRL' && e.base > base2025)
+    ? `<div class="bc-hint bc-gray" title="2025年12月31日月薪（调薪前）">¥ ${fmt(base2025)}</div>` : '';
 
   const amtLbl = e.currency==='BRL' ? '特别奖励金额 (BRL)' : '特别奖励金额';
   const amtVal = e.currency==='BRL'
     ? `${sym} ${fmt(cash)}`
     : `¥ ${fmt(cash)}`;
-  // 金额灰字说明：基数*月数
-  const amtHint = e.currency!=='BRL'
-    ? `<div class="bc-hint">¥ ${fmt(e.base)} × ${e.months} 个月</div>` : '';
+  // 金额灰字：仅在最终基数 > 25年月薪时显示（奖励被调薪放大）
+  const origAmt = base2025 * e.months;
+  const amtGrayHtml = (e.currency!=='BRL' && e.base > base2025)
+    ? `<div class="bc-hint bc-gray" title="按2025年12月31日月薪计算的参考金额">¥ ${fmt(origAmt)}</div>` : '';
 
   const noteHtml=s.note
     ? `<div class="emp-alert${s.type==='noncompete'?' warn':''}">${s.note}</div>` : '';
 
-  // 选择状态行
+  // 选择状态 + 选择结果分开展示
+  let statusPill, resultPill='';
+  if(s.status==='locked'){
+    statusPill=`<span class="status-pill sp-locked">■ 已锁定</span>`;
+    if(s.choice) resultPill=`<span style="margin-left:16px;font-size:.8rem;color:var(--text-2)">选择结果：<strong>${s.choice==='cash'?'现金发放':'股票归属'}</strong></span>`;
+  } else if(s.status==='submitted'){
+    statusPill=`<span class="status-pill sp-done">● 已提交</span>`;
+    if(s.choice) resultPill=`<span style="margin-left:16px;font-size:.8rem;color:var(--text-2)">选择结果：<strong>${s.choice==='cash'?'现金发放':'股票归属'}</strong></span>`;
+  } else {
+    statusPill=`<span class="status-pill sp-pending">○ 待选择</span>`;
+  }
   const choiceStatusHtml = `
     <div class="choice-status-row">
-      <span class="cs-label">选择状态：</span>
-      ${s.status==='pending'&&!s.choice?`<span class="status-pill sp-pending">○ 待选择</span>`
-        :s.status==='submitted'?`<span class="status-pill sp-done">● 已提交（${s.choice==='cash'?'现金发放':'股票归属'}）</span>`
-        :s.status==='locked'?`<span class="status-pill sp-locked">■ 已锁定</span>`
-        :`<span class="status-pill sp-cashonly">${s.choice==='cash'?'仅支持现金，已默认选择':'待选择'}</span>`
-      }
+      <span class="cs-label">选择状态：</span>${statusPill}${resultPill}
     </div>`;
 
-  // paymix 薪酬构成
+  // paymix 补充：仅展示25/12/31月薪、25/12/31薪酬构成、当前薪酬构成（不含当前月薪和调薪比例）
   const paymixHtml = s.type==='paymix' ? `
     <div class="paymix-section">
-      <div class="paymix-title">2025年薪酬构成参考</div>
+      <div class="paymix-title">薪酬参考信息</div>
       <div class="paymix-grid">
-        <div class="pm-item"><div class="pm-label">2025年12月31日月薪</div><div class="pm-value">¥ ${fmt(e.paymixBase2025||e.base)}</div></div>
-        <div class="pm-item"><div class="pm-label">薪酬构成</div><div class="pm-value">${e.paymixComp2025||'—'}</div></div>
-        <div class="pm-item"><div class="pm-label">2026年调薪比例</div><div class="pm-value">${e.paymixAdjustRatio||'—'}</div></div>
+        <div class="pm-item"><div class="pm-label">2025年12月31日月薪</div><div class="pm-value">¥ ${fmt(e.paymixBase2025||base2025)}</div></div>
+        <div class="pm-item"><div class="pm-label">2025年12月31日薪酬构成</div><div class="pm-value">${e.paymixComp2025||'—'}</div></div>
         <div class="pm-item"><div class="pm-label">当前薪酬构成</div><div class="pm-value">${e.paymixCurrentComp||'—'}</div></div>
       </div>
     </div>` : '';
@@ -349,7 +357,7 @@ function renderEmpInfo(s){
         <div><div class="ef-label">姓名</div><div class="ef-value">${e.name}</div></div>
         <div><div class="ef-label">用户名</div><div class="ef-value">${e.username}</div></div>
         <div><div class="ef-label">所属组织</div><div class="ef-value">${e.org}</div></div>
-        <div><div class="ef-label">2025年度绩效等级</div><div class="ef-value"><span class="perf-badge ${perfCls}">${e.perf}<span class="perf-score">${e.perfScore||''}</span></span></div></div>
+        <div><div class="ef-label">2025年度绩效等级</div><div class="ef-value"><span class="perf-badge ${perfCls}">${perfLabel}</span></div></div>
       </div>
       ${choiceStatusHtml}
       <div class="bonus-row" style="margin-top:12px">
@@ -361,13 +369,13 @@ function renderEmpInfo(s){
         <div class="bonus-cell">
           <div class="bc-label">${baseLbl}</div>
           <div class="bc-value" style="font-size:1.05rem">${baseVal}</div>
-          ${baseHint}
+          ${baseGrayHtml}
         </div>
         <div class="bonus-divider"></div>
         <div class="bonus-cell">
           <div class="bc-label">${amtLbl}</div>
           <div class="bc-value">${amtVal}</div>
-          ${amtHint}
+          ${amtGrayHtml}
         </div>
       </div>
       ${e.currency==='BRL'?`<div class="bonus-note">参考汇率：1 CNY ≈ ${CNY_BRL} BRL，实际金额以公司正式执行口径为准。</div>`:''}
@@ -409,8 +417,8 @@ function renderChoice(s){
         <a href="#" class="ch-link">咨询 ESOP 小助手 ↗</a>
       </div>
       <div class="ch-amount">
-        <div class="ch-amount-lbl">默认参考股价估算股数</div>
-        <div><span class="ch-amount-val">${shares}</span><span class="ch-amount-unit">股（参考价 ${DEFAULT_STOCK_HKD} HKD）</span></div>
+        <div class="ch-amount-lbl">股数参考</div>
+        <div><span class="ch-amount-val" style="font-size:.88rem;font-weight:600;color:var(--text-2)">${curChoice==='stock'||isLocked?shares+'股（参考价 '+DEFAULT_STOCK_HKD+' HKD）':'选择后可试算预估股数'}</span></div>
       </div>
     </div>` : `
     <div class="ch-card disabled" data-choice="stock">
@@ -430,14 +438,16 @@ function renderChoice(s){
       </div>
     </div>`;
 
-  const calcHtml = s.stockAllowed && !isLocked ? `
+  // 股数试算：仅在"已选择股票"或"锁定且结果为股票"时展示
+  const showCalc = s.stockAllowed && (curChoice==='stock' || (isLocked && s.choice==='stock'));
+  const calcHtml = showCalc ? `
     <div class="stock-calc" id="stock-calc">
       <div class="sc-title">股数试算（选填，仅供参考）</div>
       <div class="sc-row">
         <div class="sc-field">
           <div class="sc-lbl">模拟股价</div>
           <div class="sc-input-wrap">
-            <input class="sc-input" type="number" id="price-input" value="${DEFAULT_STOCK_HKD}" min="1" max="999" step="0.1"/>
+            <input class="sc-input" type="number" id="price-input" value="${DEFAULT_STOCK_HKD}" min="1" max="999" step="0.1" ${isLocked?'disabled':''}/>
             <span class="sc-unit">HKD</span>
           </div>
         </div>
@@ -493,7 +503,7 @@ function renderConfirm(s){
     <div class="confirm-wrap">
       <div class="cf-item${checked?' checked':''}" id="cf-item">
         <div class="cf-box" id="cf-box">${checked?'✓':''}</div>
-        <div class="cf-text">我已阅读并理解本次特别奖励的相关规则，确认以上选择为本人真实意愿，知悉截止前可修改选择，截止后将不可变更。</div>
+        <div class="cf-text">我已阅读并理解本次特别奖励的相关规则，确认在工资发放/股票归属前离职，公司有权收回特别奖励。此外，确认以上选择为本人真实意愿，知悉截止日期后选择将不可变更。</div>
       </div>
       ${isSubmitted
         ?`<button class="submit-btn" id="submit-btn">修改选择</button>`
@@ -582,7 +592,55 @@ function bindEvents(s){
     btn.addEventListener('click',()=>{
       if(isSubmitted){
         SCENES[curScene]={...SCENES[curScene],status:'pending',choice:curChoice};
-        cfChecked=false; renderAll();
+        cfChecked=false; // ===== URL 参数驱动 =====
+// 从后台点击员工姓名进入时，URL携带 ?emp=xxxxx，此处尝试从后台localStorage数据加载
+(function initFromUrl(){
+  const params=new URLSearchParams(window.location.search);
+  const empId=params.get('emp');
+  if(!empId) return; // 无参数，用默认演示场景
+  // 从 localStorage 查找后台员工数据（后台会在localStorage中同步数据）
+  try {
+    const stored=localStorage.getItem('bonusEmpList');
+    if(!stored) return;
+    const list=JSON.parse(stored);
+    const emp=list.find(e=>e.empId===empId);
+    if(!emp) {
+      // 员工不存在（已被删除）
+      document.getElementById('app').innerHTML=`<div style="padding:48px 24px;text-align:center;color:var(--text-3)"><div style="font-size:2rem;margin-bottom:12px">⚠️</div><div style="font-size:1rem;font-weight:600;color:var(--text)">员工不存在</div><div style="margin-top:8px;font-size:.85rem">工号 ${empId} 未找到，可能已被从名单中移除。</div><div style="margin-top:16px"><a href="admin.html" style="color:var(--blue);font-size:.85rem">← 返回管理后台</a></div></div>`;
+      return;
+    }
+    // 隐藏演示场景切换栏
+    const bar=document.getElementById('demo-bar');
+    if(bar) bar.style.display='none';
+    // 构造 scene 数据
+    const scene={
+      type: emp.type||'standard',
+      status: emp.status||'pending',
+      choice: emp.choice||null,
+      stockAllowed: emp.stockAllowed!==false,
+      empId: emp.empId,
+      emp:{
+        name:emp.name, username:emp.username, org:emp.org,
+        perf:emp.perf, perfScore:emp.perfScore||null,
+        months:emp.months||1, base:emp.bonusBase||emp.currentBase,
+        base2025:emp.base2025, currency:emp.currency||'CNY',
+        currencySymbol:emp.currency==='BRL'?'R$':'¥',
+        paymixBase2025:emp.paymixBase2025,
+        paymixComp2025:emp.payComp2025,
+        paymixCurrentComp:emp.currentPayComp,
+      },
+      note:emp.note||null,
+      submitAt:emp.submitAt||null,
+      modifyAt:emp.modifyAt||null,
+    };
+    // 注入为 urlEmp 场景并切换
+    SCENES['urlEmp']=scene;
+    curScene='urlEmp';
+    curChoice=scene.choice||null;
+  } catch(e){}
+})();
+
+renderAll();
       } else { doSubmit(s); }
     });
   }
@@ -630,15 +688,14 @@ function doSubmit(s){
 const SCENE_RESET={
   standard:  {status:'pending',choice:null,submitAt:null,modifyAt:null},
   overseas:  {status:'pending',choice:null,submitAt:null,modifyAt:null},
-  noncompete:{status:'pending',choice:null,submitAt:null,modifyAt:null},
+  noncompete:{status:'locked',choice:'cash',submitAt:'2026-07-03 09:00:00',modifyAt:null},
   paymix:    {status:'pending',choice:null,submitAt:null,modifyAt:null},
+  locked:    {status:'locked',choice:'stock',submitAt:'2026-07-05 16:30:00',modifyAt:null},
 };
 document.querySelectorAll('.demo-tab').forEach(btn=>{
   btn.addEventListener('click',()=>{
     const sc=btn.dataset.scene;
     SCENES[sc]={...SCENES[sc],...SCENE_RESET[sc]};
-    // 恢复 noncompete 的默认选中
-    if(sc==='noncompete') SCENES[sc].choice='cash';
     curScene=sc; curChoice=SCENES[sc].choice||null; cfChecked=false; stockPrice=DEFAULT_STOCK_HKD;
     document.querySelectorAll('.demo-tab').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
