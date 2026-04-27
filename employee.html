@@ -217,6 +217,7 @@ a{text-decoration:none}
     <button class="demo-tab" data-scene="paymix">paymix 员工</button>
   </div>
   <a href="admin.html" class="demo-back">← 返回管理后台</a>
+  <a href="prd.html" class="demo-back" target="_blank" style="margin-left:6px">查看完整PRD</a>
 </div>
 
 <div id="app"></div>
@@ -322,35 +323,175 @@ function fmtDateCN(dtStr){
   if(isNaN(d))return null;
   return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
+function fmtDateEN(dtStr){
+  if(!dtStr)return null;
+  const d=new Date(dtStr);
+  if(isNaN(d))return null;
+  const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+/* ---------- 海外员工判断 ---------- */
+function isOverseas(s){ return s.type==='overseas' || (s.emp && s.emp.currency && s.emp.currency!=='CNY'); }
+
+/* ---------- LANG 中英文文案映射 ---------- */
+const LANG={
+  zh:{
+    pageTitle:'2025年度绩效特别奖励选择',
+    policyLink:'查看政策文档 ↗',
+    prdLink:'查看完整PRD ↗',
+    deadlineLabel:'选择截止：',
+    windowLabel:'选择窗口：',
+    windowSep:' — ',
+    statusLabel:'选择状态：',
+    statusPending:'○ 待选择',
+    statusSubmitted:'● 已提交',
+    statusLocked:'■ 已锁定',
+    resultLabel:'选择结果：',
+    resultCash:'现金发放',
+    resultStock:'股票归属',
+    fldName:'姓名', fldUsername:'用户名', fldOrg:'所属组织', fldPerf:'2025年度绩效等级',
+    fldMonths:'特别奖励月数', fldMonthsUnit:'个月',
+    baseLbl:'特别奖励基数', baseLblBRL:'特别奖励基数 (BRL)',
+    amtLbl:'特别奖励金额',  amtLblBRL:'特别奖励金额 (BRL)',
+    baseGrayTitle:'2025年12月月基薪',
+    amtGrayTitle:'按2025年12月月基薪计算的特别奖励金额',
+    brlNote:`参考汇率：1 CNY ≈ ${CNY_BRL} BRL，实际金额以公司正式执行口径为准。`,
+    choiceTitle:'选择发放方式（二选一）',
+    lockBadgeTxt:'锁定，不可修改',
+    cashName:'现金发放',
+    cashItems:['随2026年7月底工资发放','合并当月工资计税'],
+    cashItemsOverseas:['将于7月31日之后的最近一个发薪周期发放','合并当月工资计税（以当地税务政策为准）'],
+    viewDoc:'查看文档 ↗',
+    cashAssist:'咨询薪酬小助手 ↗',
+    cashAmtLbl:'发放金额',
+    stockName:'股票归属',
+    stockItems:['随2026年7月公司窗口授予，授予后立即归属（最早卖出日期为7月26日，敏感雇员除外）','按7月1日—7月15日收盘均价和6月30日汇率计算股数','合并当年股权激励收入（如有）单独计税'],
+    stockItemsDisabled:['随2026年7月公司窗口授予，授予后立即归属','按7月1日—7月15日收盘均价和6月30日汇率计算股数'],
+    esopAssist:'咨询 ESOP 小助手 ↗',
+    sharesLbl:'预估股数（参考）',
+    sharesUnit:'股',
+    sharesTitle:'预估股数按发放金额、参考股价及汇率计算后向下取整，仅供参考。最终授予股数以公司正式执行结果为准。',
+    refPrice:`参考价 ${DEFAULT_STOCK_HKD} HKD`,
+    sharesUnavail:'当前不可选择',
+    stockLockTxt:'当前仅支持现金发放',
+    cfText:'我已阅读并理解本次特别奖励的相关规则，确认在工资发放/股票归属前离职，公司有权收回特别奖励。此外，确认以上选择为本人真实意愿，知悉截止日期后选择将不可变更。',
+    submitBtn:'确认提交选择',
+    modifyBtn:'修改选择',
+    lockedMsg:'🔒 选择窗口已关闭，无法修改',
+    closedMsg:'⚠️ 选择通道已关闭，无法提交',
+    resultChoiceTxt:{cash:'现金发放',stock:'股票归属'},
+    resultYouChose:'您选择：',
+    resultSubmitAt:'提交于',
+    resultModifyAt:'最近修改',
+    resultDeliverLbl:'发放方式', resultTimeLbl:'预计执行时间', resultTaxLbl:'计税方式',
+    resultDeliverCash:'2026年7月底工资发放时', resultDeliverCashOverseas:'7月31日后最近发薪周期',
+    resultDeliverStock:'2026年7月公司窗口',
+    resultTaxCash:'合并当月工资计税', resultTaxStock:'合并当年股权激励收入单独计税',
+    resultLockedTip:'🔒 选择窗口已于2026年7月8日23:59关闭，您的选择已最终确认，不可修改。',
+    resultOpenTip:'✓ 已成功提交。截止时间前可重新选择并再次提交，以最后一次提交结果为准。',
+  },
+  en:{
+    pageTitle:'2025 Performance Special Award Election',
+    policyLink:'View Policy Document ↗',
+    prdLink:'View Full PRD ↗',
+    deadlineLabel:'Election Deadline: ',
+    windowLabel:'Election Window: ',
+    windowSep:' – ',
+    statusLabel:'Election Status: ',
+    statusPending:'○ Pending',
+    statusSubmitted:'● Submitted',
+    statusLocked:'■ Locked',
+    resultLabel:'Election Result: ',
+    resultCash:'Cash Payment',
+    resultStock:'Share Vesting',
+    fldName:'Name', fldUsername:'Username', fldOrg:'Organization', fldPerf:'2025 Performance Rating',
+    fldMonths:'Award Months', fldMonthsUnit:'month(s)',
+    baseLbl:'Award Base', baseLblBRL:'Award Base (BRL)',
+    amtLbl:'Award Amount', amtLblBRL:'Award Amount (BRL)',
+    baseGrayTitle:'Monthly base salary as of December 2025',
+    amtGrayTitle:'Award amount calculated based on the monthly base salary as of December 2025',
+    brlNote:`Reference rate: 1 CNY ≈ ${CNY_BRL} BRL. Actual amount is subject to the company's official execution.`,
+    choiceTitle:'Select Award Delivery Method (Choose One)',
+    lockBadgeTxt:'Locked, Cannot Be Changed',
+    cashName:'Cash Payment',
+    cashItems:['Paid with the July 2026 payroll','Taxed together with monthly salary'],
+    cashItemsOverseas:['Paid with the July 2026 payroll','Taxed together with monthly salary'],
+    viewDoc:'View Document ↗',
+    cashAssist:'Contact Compensation Assistant ↗',
+    cashAmtLbl:'Payment Amount',
+    stockName:'Share Vesting',
+    stockItems:['Granted during the July 2026 company window and vested immediately after grant','Estimated shares are calculated using the average closing price from Jul 1 to Jul 15 and the Jun 30 exchange rate','Taxed separately as equity incentive income for the year, if applicable'],
+    stockItemsDisabled:['Granted during the July 2026 company window and vested immediately after grant','Estimated shares are calculated using the average closing price from Jul 1 to Jul 15 and the Jun 30 exchange rate'],
+    esopAssist:'Contact ESOP Assistant ↗',
+    sharesLbl:'Estimated Shares',
+    sharesUnit:'shares',
+    sharesTitle:'Estimated shares are calculated based on the award amount, reference share price, and exchange rate, then rounded down. This is for election reference only. The final number of granted shares is subject to the company\'s official execution result.',
+    refPrice:`Reference Price: HKD ${DEFAULT_STOCK_HKD}`,
+    sharesUnavail:'Not Available',
+    stockLockTxt:'Cash Payment only for this employee',
+    cfText:'I have read and understood the relevant rules of this special award. I acknowledge that if I leave the company before the cash payment or share vesting is completed, the company has the right to recover the special award. I also confirm that the election above reflects my true intention and understand that it cannot be changed after the deadline.',
+    submitBtn:'Submit Election',
+    modifyBtn:'Update Election',
+    lockedMsg:'🔒 The election window is closed and cannot be changed.',
+    closedMsg:'⚠️ The election channel has been closed. Submission is not available.',
+    resultChoiceTxt:{cash:'Cash Payment',stock:'Share Vesting'},
+    resultYouChose:'You selected: ',
+    resultSubmitAt:'Submitted at',
+    resultModifyAt:'Last modified',
+    resultDeliverLbl:'Delivery Method', resultTimeLbl:'Expected Execution', resultTaxLbl:'Tax Treatment',
+    resultDeliverCash:'With July 2026 payroll', resultDeliverCashOverseas:'Next payroll after Jul 31',
+    resultDeliverStock:'July 2026 company window',
+    resultTaxCash:'Taxed with monthly salary', resultTaxStock:'Taxed separately as equity incentive income',
+    resultLockedTip:'🔒 The election window closed at 23:59 on Jul 8, 2026. Your election is final and cannot be changed.',
+    resultOpenTip:'✓ Successfully submitted. You may update your election before the deadline. The last submission will prevail.',
+  },
+};
+function L(s){ return isOverseas(s)?LANG.en:LANG.zh; }
 
 /* ---------- 渲染头部（状态/结果前置到顶部卡片） ---------- */
 function renderHeader(s){
   const plan=getPlanConfig();
-  const deadline = fmtDateCN(plan.endTime) || '2026年7月8日 23:59';
-  const winStart = plan.startTime ? `${new Date(plan.startTime).getMonth()+1}月${new Date(plan.startTime).getDate()}日` : '7月1日';
-  const winEnd = plan.endTime ? `${new Date(plan.endTime).getMonth()+1}月${new Date(plan.endTime).getDate()}日` : '7月8日';
+  const lang=L(s);
+  const ov=isOverseas(s);
+  // 截止时间和窗口
+  let deadline, winStart, winEnd;
+  if(ov){
+    const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    if(plan.endTime){
+      const d=new Date(plan.endTime);
+      deadline=`${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }else{deadline='Jul 8, 2026 23:59';}
+    if(plan.startTime){const d=new Date(plan.startTime);winStart=`${MONTHS[d.getMonth()]} ${d.getDate()}`;}else{winStart='Jul 1';}
+    if(plan.endTime){const d=new Date(plan.endTime);winEnd=`${MONTHS[d.getMonth()]} ${d.getDate()}`;}else{winEnd='Jul 8';}
+  }else{
+    deadline = fmtDateCN(plan.endTime) || '2026年7月8日 23:59';
+    winStart = plan.startTime ? `${new Date(plan.startTime).getMonth()+1}月${new Date(plan.startTime).getDate()}日` : '7月1日';
+    winEnd = plan.endTime ? `${new Date(plan.endTime).getMonth()+1}月${new Date(plan.endTime).getDate()}日` : '7月8日';
+  }
   // 选择状态 + 结果
   let statusPill, resultHtml='';
-  if(s.status==='locked'){
-    statusPill=`<span class="status-pill sp-locked">■ 已锁定</span>`;
-    if(s.choice) resultHtml=`<span class="ph-status-label">选择结果：</span><strong>${s.choice==='cash'?'现金发放':'股票归属'}</strong>`;
-  } else if(s.status==='submitted'){
-    statusPill=`<span class="status-pill sp-done">● 已提交</span>`;
-    if(s.choice) resultHtml=`<span class="ph-status-label">选择结果：</span><strong>${s.choice==='cash'?'现金发放':'股票归属'}</strong>`;
-  } else {
-    statusPill=`<span class="status-pill sp-pending">○ 待选择</span>`;
+  const statusMap={locked:lang.statusLocked,submitted:lang.statusSubmitted,pending:lang.statusPending};
+  const statusCls={locked:'sp-locked',submitted:'sp-done',pending:'sp-pending'};
+  statusPill=`<span class="status-pill ${statusCls[s.status]||'sp-pending'}">${statusMap[s.status]||lang.statusPending}</span>`;
+  if((s.status==='locked'||s.status==='submitted')&&s.choice){
+    const choiceTxt=s.choice==='cash'?lang.resultCash:lang.resultStock;
+    resultHtml=`<span class="ph-status-label">${lang.resultLabel}</span><strong>${choiceTxt}</strong>`;
   }
   return `
   <div class="card section-anim">
     <div class="page-header">
       <div class="ph-row1">
-        <div class="ph-title">2025年度绩效特别奖励选择</div>
-        <a href="#" class="ph-policy-link">查看政策文档 ↗</a>
+        <div class="ph-title">${lang.pageTitle}</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <a href="#" class="ph-policy-link">${lang.policyLink}</a>
+          <a href="prd.html" class="ph-policy-link" target="_blank" style="background:#f0f2f5;border-color:#d0d8e8;color:var(--text-2)">${lang.prdLink}</a>
+        </div>
       </div>
       <div class="ph-meta">
-        <div class="ph-meta-item">选择截止：<span class="ph-meta-hl urgent">${deadline}</span></div>
-        <div class="ph-meta-item">选择窗口：<span class="ph-meta-hl">${winStart} — ${winEnd}</span></div>
-        <div class="ph-meta-item"><span style="color:var(--text-3)">选择状态：</span>${statusPill}</div>
+        <div class="ph-meta-item">${lang.deadlineLabel}<span class="ph-meta-hl urgent">${deadline}</span></div>
+        <div class="ph-meta-item">${lang.windowLabel}<span class="ph-meta-hl">${winStart}${lang.windowSep}${winEnd}</span></div>
+        <div class="ph-meta-item"><span style="color:var(--text-3)">${lang.statusLabel}</span>${statusPill}</div>
         ${resultHtml ? `<div class="ph-meta-item">${resultHtml}</div>` : ''}
       </div>
     </div>
@@ -360,32 +501,30 @@ function renderHeader(s){
 /* ---------- 渲染员工信息卡 ---------- */
 function renderEmpInfo(s){
   const e=s.emp;
+  const lang=L(s);
+  const ov=isOverseas(s);
   const perfCls=e.perf==='S'?'perf-S':'perf-A';
   const perfLabel=e.perfScore?`${e.perf} / ${e.perfScore}`:e.perf;
   const cash=cashAmt(s);
   const sym=e.currencySymbol;
 
-  // 特别奖励基数（base已是最终值，base2025为25/12/31月薪）
-  const baseLbl = e.currency==='BRL' ? '特别奖励基数 (BRL)' : '特别奖励基数';
+  // 特别奖励基数
+  const baseLbl = e.currency==='BRL' ? lang.baseLblBRL : lang.baseLbl;
   const baseVal = e.currency==='BRL'
     ? `${sym} ${fmt(baseBRL(s))}`
     : `¥ ${fmt(e.base)}`;
-  // 基数灰字：仅在最终基数 > 25年12/31月薪时显示，tooltip解释
   const base2025 = e.base2025 || e.base;
   const baseGrayHtml = (e.currency!=='BRL' && e.base > base2025)
-    ? `<div class="bc-hint bc-gray" title="2025年12月月基薪">¥ ${fmt(base2025)}</div>` : '';
+    ? `<div class="bc-hint bc-gray" title="${lang.baseGrayTitle}">¥ ${fmt(base2025)}</div>` : '';
 
-  const amtLbl = e.currency==='BRL' ? '特别奖励金额 (BRL)' : '特别奖励金额';
+  const amtLbl = e.currency==='BRL' ? lang.amtLblBRL : lang.amtLbl;
   const amtVal = e.currency==='BRL'
     ? `${sym} ${fmt(cash)}`
     : `¥ ${fmt(cash)}`;
-  // 金额灰字：仅在最终基数 > 25年月薪时显示（奖励被调薪放大）
   const origAmt = base2025 * e.months;
   const amtGrayHtml = (e.currency!=='BRL' && e.base > base2025)
-    ? `<div class="bc-hint bc-gray" title="按2025年12月月基薪计算的特别奖励金额">¥ ${fmt(origAmt)}</div>` : '';
+    ? `<div class="bc-hint bc-gray" title="${lang.amtGrayTitle}">¥ ${fmt(origAmt)}</div>` : '';
 
-  const noteHtml=s.note
-    ? `<div class="emp-alert${s.type==='noncompete'?' warn':''}">${s.note}</div>` : '';
   // paymix 处：将 note 替换为指定文案
   const finalNote = s.type==='paymix'
     ? '您的特别奖励基数不受 paymix 切换导致的月薪下降影响；如2026年发生调薪，将在2025年12月月薪基础上按实际调薪比例计算。'
@@ -393,7 +532,7 @@ function renderEmpInfo(s){
   const finalNoteHtml = finalNote
     ? `<div class="emp-alert${s.type==='noncompete'?' warn':''}">${finalNote}</div>` : '';
 
-  // paymix 补充：仅展示25/12/31月薪、25/12/31薪酬构成、当前薪酬构成（不含当前月薪和调薪比例）
+  // paymix 补充信息区
   const paymixHtml = s.type==='paymix' ? `
     <div class="paymix-section">
       <div class="paymix-title">薪酬参考信息</div>
@@ -401,6 +540,7 @@ function renderEmpInfo(s){
         <div class="pm-item"><div class="pm-label">2025年12月31日月薪</div><div class="pm-value">¥ ${fmt(e.paymixBase2025||base2025)}</div></div>
         <div class="pm-item"><div class="pm-label">2025年12月31日薪酬构成</div><div class="pm-value">${e.paymixComp2025||'—'}</div></div>
         <div class="pm-item"><div class="pm-label">当前薪酬构成</div><div class="pm-value">${e.paymixCurrentComp||'—'}</div></div>
+        ${e.paymixAdjRatio ? `<div class="pm-item"><div class="pm-label">2026年调薪比例</div><div class="pm-value">${e.paymixAdjRatio}</div></div>` : ''}
       </div>
     </div>` : '';
 
@@ -408,15 +548,15 @@ function renderEmpInfo(s){
   <div class="card section-anim">
     <div class="emp-card">
       <div class="emp-fields-top">
-        <div><div class="ef-label">姓名</div><div class="ef-value">${e.name}</div></div>
-        <div><div class="ef-label">用户名</div><div class="ef-value">${e.username}</div></div>
-        <div><div class="ef-label">所属组织</div><div class="ef-value">${e.org}</div></div>
-        <div><div class="ef-label">2025年度绩效等级</div><div class="ef-value"><span class="perf-badge ${perfCls}">${perfLabel}</span></div></div>
+        <div><div class="ef-label">${lang.fldName}</div><div class="ef-value">${e.name}</div></div>
+        <div><div class="ef-label">${lang.fldUsername}</div><div class="ef-value">${e.username}</div></div>
+        <div><div class="ef-label">${lang.fldOrg}</div><div class="ef-value">${e.org}</div></div>
+        <div><div class="ef-label">${lang.fldPerf}</div><div class="ef-value"><span class="perf-badge ${perfCls}">${perfLabel}</span></div></div>
       </div>
       <div class="bonus-row" style="margin-top:12px">
         <div class="bonus-cell">
-          <div class="bc-label">特别奖励月数</div>
-          <div class="bc-value">${e.months}<span class="unit">个月</span></div>
+          <div class="bc-label">${lang.fldMonths}</div>
+          <div class="bc-value">${e.months}<span class="unit">${ov?' '+lang.fldMonthsUnit:lang.fldMonthsUnit}</span></div>
         </div>
         <div class="bonus-divider"></div>
         <div class="bonus-cell">
@@ -431,7 +571,7 @@ function renderEmpInfo(s){
           ${amtGrayHtml}
         </div>
       </div>
-      ${e.currency==='BRL'?`<div class="bonus-note">参考汇率：1 CNY ≈ ${CNY_BRL} BRL，实际金额以公司正式执行口径为准。</div>`:''}
+      ${e.currency==='BRL'?`<div class="bonus-note">${lang.brlNote}</div>`:''}
       ${paymixHtml}
       ${finalNoteHtml}
     </div>
@@ -440,54 +580,46 @@ function renderEmpInfo(s){
 
 /* ---------- 渲染选择区 ---------- */
 function renderChoice(s){
+  const lang=L(s);
   const isLocked=s.status==='locked';
   const cash=cashAmt(s);
   const sym=s.emp.currencySymbol;
   const cashStr=s.emp.currency==='BRL'?`${sym} ${fmt(cash)}`:`¥ ${fmt(cash)}`;
   const shares=fmt(sharesCalc(s,DEFAULT_STOCK_HKD));
-  const lockBadge=isLocked?`<span class="status-pill sp-locked" style="margin-bottom:10px">锁定，不可修改</span><br>`:'';
+  const lockBadge=isLocked?`<span class="status-pill sp-locked" style="margin-bottom:10px">${lang.lockBadgeTxt}</span><br>`:'';
 
   // 现金说明文案（海外/国内区分）
-  const cashItems = s.type==='overseas' ? [
-    '将于7月31日之后的最近一个发薪周期发放',
-    '合并当月工资计税（以当地税务政策为准）',
-  ] : [
-    '随2026年7月底工资发放',
-    '合并当月工资计税',
-  ];
+  const cashItems = isOverseas(s) ? lang.cashItemsOverseas : lang.cashItems;
 
   const stockCard = s.stockAllowed ? `
     <div class="ch-card${curChoice==='stock'?' selected':''}${isLocked?' locked-card':''}" data-choice="stock">
       <div class="ch-radio"></div>
-      <div class="ch-name">股票归属</div>
+      <div class="ch-name">${lang.stockName}</div>
       <ul class="ch-desc">
-        <li>随2026年7月公司窗口授予，授予后立即归属（最早卖出日期为7月26日，敏感雇员除外）</li>
-        <li>按7月1日—7月15日收盘均价和6月30日汇率计算股数</li>
-        <li>合并当年股权激励收入（如有）单独计税</li>
+        ${lang.stockItems.map(t=>`<li>${t}</li>`).join('')}
       </ul>
       <div class="ch-links">
-        <a href="#" class="ch-link">查看文档 ↗</a>
-        <a href="#" class="ch-link">咨询 ESOP 小助手 ↗</a>
+        <a href="#" class="ch-link">${lang.viewDoc}</a>
+        <a href="#" class="ch-link">${lang.esopAssist}</a>
       </div>
       <div class="ch-amount">
-        <div class="ch-amount-lbl">预估股数（参考）<span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:#dde4f0;color:#5a6882;font-size:.62rem;font-weight:700;cursor:help;vertical-align:middle;margin-left:3px" title="预估股数按发放金额、参考股价及汇率计算后向下取整，仅供参考。最终授予股数以公司正式执行结果为准。">ℹ</span></div>
-        <div><span class="ch-amount-val">${shares}</span><span class="ch-amount-unit">股</span><span style="font-size:.7rem;color:var(--text-3);margin-left:6px">参考价 ${DEFAULT_STOCK_HKD} HKD</span></div>
+        <div class="ch-amount-lbl">${lang.sharesLbl}<span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:#dde4f0;color:#5a6882;font-size:.62rem;font-weight:700;cursor:help;vertical-align:middle;margin-left:3px" title="${lang.sharesTitle}">ℹ</span></div>
+        <div><span class="ch-amount-val">${shares}</span><span class="ch-amount-unit"> ${lang.sharesUnit}</span><span style="font-size:.7rem;color:var(--text-3);margin-left:6px">${lang.refPrice}</span></div>
       </div>
     </div>` : `
     <div class="ch-card disabled" data-choice="stock">
       <div class="ch-radio"></div>
-      <div class="ch-name">股票归属</div>
+      <div class="ch-name">${lang.stockName}</div>
       <ul class="ch-desc">
-        <li>随2026年7月公司窗口授予，授予后立即归属</li>
-        <li>按7月1日—7月15日收盘均价和6月30日汇率计算股数</li>
+        ${lang.stockItemsDisabled.map(t=>`<li>${t}</li>`).join('')}
       </ul>
       <div class="ch-amount">
-        <div class="ch-amount-lbl">当前不可选择</div>
+        <div class="ch-amount-lbl">${lang.sharesUnavail}</div>
         <div><span class="ch-amount-val">—</span></div>
       </div>
       <div class="ch-lock-overlay">
         <div class="ch-lock-ico">🔒</div>
-        <div class="ch-lock-txt">当前仅支持现金发放</div>
+        <div class="ch-lock-txt">${lang.stockLockTxt}</div>
       </div>
     </div>`;
 
@@ -496,21 +628,21 @@ function renderChoice(s){
   return `
   <div class="card section-anim">
     <div class="choice-wrap">
-      <div class="choice-title">选择发放方式（二选一）</div>
+      <div class="choice-title">${lang.choiceTitle}</div>
       ${lockBadge}
       <div class="choice-cards">
         <div class="ch-card${curChoice==='cash'?' selected':''}${isLocked?' locked-card':''}" data-choice="cash">
           <div class="ch-radio"></div>
-          <div class="ch-name">现金发放</div>
+          <div class="ch-name">${lang.cashName}</div>
           <ul class="ch-desc">
             ${cashItems.map(t=>`<li>${t}</li>`).join('')}
           </ul>
           <div class="ch-links">
-            <a href="#" class="ch-link">查看文档 ↗</a>
-            <a href="#" class="ch-link">咨询薪酬小助手 ↗</a>
+            <a href="#" class="ch-link">${lang.viewDoc}</a>
+            <a href="#" class="ch-link">${lang.cashAssist}</a>
           </div>
           <div class="ch-amount">
-            <div class="ch-amount-lbl">发放金额</div>
+            <div class="ch-amount-lbl">${lang.cashAmtLbl}</div>
             <div><span class="ch-amount-val">${cashStr}</span></div>
           </div>
         </div>
@@ -522,13 +654,14 @@ function renderChoice(s){
 
 /* ---------- 确认与提交 ---------- */
 function renderConfirm(s){
+  const lang=L(s);
   const plan=getPlanConfig();
   if(s.status==='locked'){
-    return `<div class="card section-anim"><div class="confirm-wrap"><div class="submit-locked">🔒 选择窗口已关闭，无法修改</div></div></div>`;
+    return `<div class="card section-anim"><div class="confirm-wrap"><div class="submit-locked">${lang.lockedMsg}</div></div></div>`;
   }
   // 如果后台已手动关闭选择通道，且员工未提交，则禁止提交
   if(plan.closed && s.status!=='submitted'){
-    return `<div class="card section-anim"><div class="confirm-wrap"><div class="submit-locked">⚠️ 选择通道已关闭，无法提交</div></div></div>`;
+    return `<div class="card section-anim"><div class="confirm-wrap"><div class="submit-locked">${lang.closedMsg}</div></div></div>`;
   }
   const isSubmitted=s.status==='submitted';
   const checked=isSubmitted||cfChecked;
@@ -537,11 +670,11 @@ function renderConfirm(s){
     <div class="confirm-wrap">
       <div class="cf-item${checked?' checked':''}" id="cf-item">
         <div class="cf-box" id="cf-box">${checked?'✓':''}</div>
-        <div class="cf-text">我已阅读并理解本次特别奖励的相关规则，确认在工资发放/股票归属前离职，公司有权收回特别奖励。此外，确认以上选择为本人真实意愿，知悉截止日期后选择将不可变更。</div>
+        <div class="cf-text">${lang.cfText}</div>
       </div>
       ${isSubmitted
-        ?`<button class="submit-btn" id="submit-btn">修改选择</button>`
-        :`<button class="submit-btn" id="submit-btn" ${(!cfChecked||!curChoice)?'disabled':''}>确认提交选择</button>`}
+        ?`<button class="submit-btn" id="submit-btn">${lang.modifyBtn}</button>`
+        :`<button class="submit-btn" id="submit-btn" ${(!cfChecked||!curChoice)?'disabled':''}>${lang.submitBtn}</button>`}
     </div>
   </div>`;
 }
@@ -549,32 +682,32 @@ function renderConfirm(s){
 /* ---------- 提交结果 ---------- */
 function renderResult(s){
   if(s.status!=='submitted'&&s.status!=='locked')return '';
+  const lang=L(s);
+  const ov=isOverseas(s);
   const isCash=s.choice==='cash';
   const isLocked=s.status==='locked';
-  const choiceTxt=isCash?'现金发放':'股票归属';
+  const choiceTxt=lang.resultChoiceTxt[s.choice]||(isCash?lang.resultCash:lang.resultStock);
   const deliverTxt=isCash
-    ?(s.type==='overseas'?'7月31日后最近发薪周期':'2026年7月底工资发放时')
-    :'2026年7月公司窗口';
-  const taxTxt=isCash?'合并当月工资计税':'合并当年股权激励收入单独计税';
+    ?(ov?lang.resultDeliverCashOverseas:lang.resultDeliverCash)
+    :lang.resultDeliverStock;
+  const taxTxt=isCash?lang.resultTaxCash:lang.resultTaxStock;
   return `
   <div class="card section-anim" id="result-card">
     <div class="result-wrap">
       <div class="result-header">
         <div class="result-icon-wrap ${isCash?'ri-cash':'ri-stock'}">${isCash?'💵':'📊'}</div>
         <div>
-          <div class="r-title">您选择：${choiceTxt}</div>
-          <div class="r-sub">提交于 ${s.submitAt}${s.modifyAt?' · 最近修改 '+s.modifyAt:''}</div>
+          <div class="r-title">${lang.resultYouChose}${choiceTxt}</div>
+          <div class="r-sub">${lang.resultSubmitAt} ${s.submitAt}${s.modifyAt?' · '+lang.resultModifyAt+' '+s.modifyAt:''}</div>
         </div>
       </div>
       <div class="result-grid">
-        <div><div class="rg-label">发放方式</div><div class="rg-value">${choiceTxt}</div></div>
-        <div><div class="rg-label">预计执行时间</div><div class="rg-value">${deliverTxt}</div></div>
-        <div><div class="rg-label">计税方式</div><div class="rg-value">${taxTxt}</div></div>
+        <div><div class="rg-label">${lang.resultDeliverLbl}</div><div class="rg-value">${choiceTxt}</div></div>
+        <div><div class="rg-label">${lang.resultTimeLbl}</div><div class="rg-value">${deliverTxt}</div></div>
+        <div><div class="rg-label">${lang.resultTaxLbl}</div><div class="rg-value">${taxTxt}</div></div>
       </div>
       <div class="result-tip${isLocked?' locked':''}">
-        ${isLocked
-          ?'🔒 选择窗口已于2026年7月8日23:59关闭，您的选择已最终确认，不可修改。'
-          :'✓ 已成功提交。截止时间前可重新选择并再次提交，以最后一次提交结果为准。'}
+        ${isLocked?lang.resultLockedTip:lang.resultOpenTip}
       </div>
     </div>
   </div>`;
