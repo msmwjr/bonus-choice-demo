@@ -611,12 +611,10 @@ function renderTable(list){
       </td>
       <td>${statusBadge[e.status]||'—'}</td>
       <td>${e.choice?choiceBadge[e.choice]:'<span class="badge-none">—</span>'}</td>
+      <td style="vertical-align:middle">${pushBadge[e.pushStatus||'none']}</td>
       <td style="vertical-align:middle">
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap">
-          <div style="display:flex;align-items:center;height:22px">${pushBadge[e.pushStatus||'none']}</div>
-          <button style="height:22px;padding:0 8px;border:1px solid var(--border);border-radius:4px;font-size:.72rem;background:var(--surface);color:var(--text-2);cursor:pointer;white-space:nowrap;line-height:1;display:flex;align-items:center" onclick="doPushOne('${e.empId}')"
-            ${(e.pushStatus==='pushed')?'title="重新推送"':''}>推送</button>
-        </div>
+        <button style="padding:2px 10px;border:1px solid var(--border);border-radius:4px;font-size:.72rem;background:var(--surface);color:var(--text-2);cursor:pointer;white-space:nowrap" onclick="doPushOne('${e.empId}')"
+          ${(e.pushStatus==='pushed')?'title="重新推送"':''}>推送</button>
       </td>
     </tr>`;
   }).join('');
